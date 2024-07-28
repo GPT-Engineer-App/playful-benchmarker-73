@@ -11,15 +11,34 @@ const useCreateScenarioForm = () => {
   const addReviewer = useAddReviewer();
   const { data: reviewDimensions, isLoading: isLoadingDimensions } = useReviewDimensions();
 
-  const [scenario, setScenario] = useState({
-    name: "",
-    description: "",
-    prompt: "",
-    llm_temperature: 0.5,
-    timeout: 300,
+  const [scenario, setScenario] = useState(() => {
+    const savedScenario = localStorage.getItem('draftScenario');
+    return savedScenario ? JSON.parse(savedScenario) : {
+      name: "",
+      description: "",
+      prompt: "",
+      llm_temperature: 0.5,
+      timeout: 300,
+    };
   });
 
-  const [reviewers, setReviewers] = useState([]);
+  const [reviewers, setReviewers] = useState(() => {
+    const savedReviewers = localStorage.getItem('draftReviewers');
+    return savedReviewers ? JSON.parse(savedReviewers) : [];
+  });
+
+  const saveDraft = useCallback(() => {
+    localStorage.setItem('draftScenario', JSON.stringify(scenario));
+    localStorage.setItem('draftReviewers', JSON.stringify(reviewers));
+  }, [scenario, reviewers]);
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', saveDraft);
+    return () => {
+      window.removeEventListener('beforeunload', saveDraft);
+      saveDraft();
+    };
+  }, [saveDraft]);
 
   const handleScenarioChange = (e) => {
     const { name, value } = e.target;
@@ -44,6 +63,7 @@ const useCreateScenarioForm = () => {
 
   const handleReviewerDimensionChange = (index, value) => {
     if (value === "create_new") {
+      saveDraft();
       navigate("/create-review-dimension");
     } else {
       setReviewers((prev) => {
@@ -101,6 +121,10 @@ const useCreateScenarioForm = () => {
           scenario_id: createdScenarioId,
         });
       }
+
+      // Clear the draft from localStorage
+      localStorage.removeItem('draftScenario');
+      localStorage.removeItem('draftReviewers');
 
       toast.success("Scenario and reviewers created successfully");
       navigate("/");
