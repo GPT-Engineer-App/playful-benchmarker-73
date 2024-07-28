@@ -121,20 +121,18 @@ const useCreateScenarioForm = () => {
     }
 
     try {
-      const { data: scenarioData, error: scenarioError } = await addBenchmarkScenario.mutateAsync(scenario);
-      if (scenarioError) throw scenarioError;
-      if (!scenarioData || scenarioData.length === 0) {
+      const scenarioData = await addBenchmarkScenario.mutateAsync(scenario);
+      if (!scenarioData) {
         throw new Error("Failed to create scenario: No data returned");
       }
 
-      const createdScenarioId = scenarioData[0].id;
+      const createdScenarioId = scenarioData.id;
 
       for (const reviewer of reviewers) {
-        const { error: reviewerError } = await addReviewer.mutateAsync({
+        await addReviewer.mutateAsync({
           ...reviewer,
           scenario_id: createdScenarioId,
         });
-        if (reviewerError) throw reviewerError;
       }
 
       // Clear the draft from localStorage

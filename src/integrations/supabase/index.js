@@ -13,7 +13,7 @@ export function SupabaseProvider({ children }) {
 
 const fromSupabase = async (query) => {
     const { data, error } = await query;
-    if (error) throw new Error(error.message);
+    if (error) throw error;
     return data;
 };
 
@@ -134,7 +134,8 @@ export const useAddBenchmarkScenario = () => {
         mutationFn: async (newScenario) => {
             const { data, error } = await supabase.from('benchmark_scenarios').insert([newScenario]).select();
             if (error) throw error;
-            return data;
+            if (!data || data.length === 0) throw new Error("No data returned from scenario creation");
+            return data[0];
         },
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
@@ -220,7 +221,8 @@ export const useAddReviewer = () => {
         mutationFn: async (newReviewer) => {
             const { data, error } = await supabase.from('reviewers').insert([newReviewer]).select();
             if (error) throw error;
-            return data;
+            if (!data || data.length === 0) throw new Error("No data returned from reviewer creation");
+            return data[0];
         },
         onSuccess: () => {
             queryClient.invalidateQueries('reviewers');
