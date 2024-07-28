@@ -131,7 +131,11 @@ export const useBenchmarkScenario = (id) => useQuery({
 export const useAddBenchmarkScenario = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newScenario) => fromSupabase(supabase.from('benchmark_scenarios').insert([newScenario])),
+        mutationFn: async (newScenario) => {
+            const { data, error } = await supabase.from('benchmark_scenarios').insert([newScenario]).select();
+            if (error) throw error;
+            return data;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
         },

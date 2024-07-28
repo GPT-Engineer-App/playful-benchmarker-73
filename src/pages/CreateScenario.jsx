@@ -133,11 +133,16 @@ const CreateScenario = () => {
     try {
       const { data: scenarioData, error: scenarioError } = await addBenchmarkScenario.mutateAsync(scenario);
       if (scenarioError) throw scenarioError;
+      if (!scenarioData || scenarioData.length === 0) {
+        throw new Error("Failed to create scenario: No data returned");
+      }
+
+      const createdScenarioId = scenarioData[0].id;
 
       for (const reviewer of reviewers) {
         const { error: reviewerError } = await addReviewer.mutateAsync({
           ...reviewer,
-          scenario_id: scenarioData[0].id,
+          scenario_id: createdScenarioId,
         });
         if (reviewerError) throw reviewerError;
       }
@@ -149,7 +154,8 @@ const CreateScenario = () => {
       toast.success("Scenario and reviewers created successfully");
       navigate("/");
     } catch (error) {
-      toast.error("Failed to create scenario: " + error.message);
+      console.error("Error creating scenario:", error);
+      toast.error(`Failed to create scenario: ${error.message}`);
     }
   };
 
