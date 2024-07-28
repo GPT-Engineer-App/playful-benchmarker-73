@@ -7,10 +7,16 @@ export async function callOpenAILLM(prompt, model = 'gpt-4o') {
       throw new Error('User not authenticated');
     }
 
-    const response = await fetch(`${session.system_version}/openai/chat/completions`, {
+    console.log('Session data:', session);  // Debug log
+
+    const systemVersion = session.system_version || 'https://lov-p-33afc4d2-8ae8-4a62-b1f1-0561e587db8e.fly.dev';
+    console.log('System version:', systemVersion);  // Debug log
+
+    const response = await fetch(`${systemVersion}/openai/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         model: model,
@@ -21,6 +27,8 @@ export async function callOpenAILLM(prompt, model = 'gpt-4o') {
         max_tokens: 1000
       })
     });
+
+    console.log('Response status:', response.status);  // Debug log
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
