@@ -1,4 +1,4 @@
-import { callOpenAILLM } from './anthropic';
+import { callAnthropicLLM } from './anthropic';
 
 // Function to parse LLM response and extract special XML tags
 const parseLLMResponse = (response) => {
@@ -10,7 +10,7 @@ const parseLLMResponse = (response) => {
 
 // Function to create a new project
 const createProject = async (description, systemVersion) => {
-  const response = await fetch(`${systemVersion}/projects`, {
+  const response = await fetch(`http://${systemVersion}/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ const createProject = async (description, systemVersion) => {
 
 // Function to send a chat message to a project
 const sendChatMessage = async (projectId, message, systemVersion) => {
-  const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
+  const response = await fetch(`http://${systemVersion}/projects/${projectId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ const sendChatMessage = async (projectId, message, systemVersion) => {
 };
 
 // Main function to handle user impersonation
-export const impersonateUser = async (prompt, systemVersion) => {
+export const impersonateUser = async (prompt, systemVersion, apiKey) => {
   try {
     const systemMessage = `You are an AI assistant impersonating a user interacting with a GPT Engineer system. When you want to send a request to the system, use the <lov-chat-request> XML tag. Here's an example of how you might use it:
 
@@ -51,7 +51,7 @@ Now, based on the following prompt, generate appropriate requests to the GPT Eng
 
 ${prompt}`;
 
-    const llmResponse = await callOpenAILLM(systemMessage);
+    const llmResponse = await callAnthropicLLM(systemMessage, apiKey);
     const chatRequests = parseLLMResponse(llmResponse);
     
     let projectId = null;

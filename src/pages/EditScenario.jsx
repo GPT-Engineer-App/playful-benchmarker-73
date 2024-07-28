@@ -22,9 +22,11 @@ const EditScenario = () => {
     reviewDimensions,
     isLoadingDimensions,
     handleScenarioChange,
+    handleLLMModelChange,
     handleLLMTemperatureChange,
     handleReviewerChange,
     handleReviewerDimensionChange,
+    handleReviewerLLMModelChange,
     handleReviewerLLMTemperatureChange,
     addReviewerField,
     handleDeleteReviewer,
@@ -74,6 +76,7 @@ const EditScenario = () => {
           <ScenarioDetails
             scenario={scenario}
             handleScenarioChange={handleScenarioChange}
+            handleLLMModelChange={handleLLMModelChange}
             handleLLMTemperatureChange={handleLLMTemperatureChange}
           />
 
@@ -88,6 +91,7 @@ const EditScenario = () => {
                 isLoadingDimensions={isLoadingDimensions}
                 handleReviewerChange={handleReviewerChange}
                 handleReviewerDimensionChange={handleReviewerDimensionChange}
+                handleReviewerLLMModelChange={handleReviewerLLMModelChange}
                 handleReviewerLLMTemperatureChange={handleReviewerLLMTemperatureChange}
                 handleDeleteReviewer={handleDeleteReviewer}
               />

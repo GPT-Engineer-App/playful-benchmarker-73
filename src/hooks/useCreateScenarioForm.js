@@ -17,6 +17,7 @@ const useCreateScenarioForm = () => {
       name: "",
       description: "",
       prompt: "",
+      llm_model: "gpt-4o-mini",
       llm_temperature: 0.5,
     };
   });
@@ -42,6 +43,10 @@ const useCreateScenarioForm = () => {
   const handleScenarioChange = (e) => {
     const { name, value } = e.target;
     setScenario((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLLMModelChange = (value) => {
+    setScenario((prev) => ({ ...prev, llm_model: value }));
   };
 
   const handleLLMTemperatureChange = (value) => {
@@ -73,6 +78,14 @@ const useCreateScenarioForm = () => {
     }
   };
 
+  const handleReviewerLLMModelChange = (index, value) => {
+    setReviewers((prev) => {
+      const newReviewers = [...prev];
+      newReviewers[index] = { ...newReviewers[index], llm_model: value };
+      return newReviewers;
+    });
+  };
+
   const handleReviewerLLMTemperatureChange = (index, value) => {
     setReviewers((prev) => {
       const newReviewers = [...prev];
@@ -89,6 +102,7 @@ const useCreateScenarioForm = () => {
         description: "",
         prompt: "",
         weight: 1,
+        llm_model: "gpt-4o-mini",
         llm_temperature: 0,
         run_count: 1,
       },
@@ -139,9 +153,11 @@ const useCreateScenarioForm = () => {
     reviewDimensions,
     isLoadingDimensions,
     handleScenarioChange,
+    handleLLMModelChange,
     handleLLMTemperatureChange,
     handleReviewerChange,
     handleReviewerDimensionChange,
+    handleReviewerLLMModelChange,
     handleReviewerLLMTemperatureChange,
     addReviewerField,
     handleDeleteReviewer,

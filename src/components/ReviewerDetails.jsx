@@ -26,6 +26,7 @@ const ReviewerDetails = ({
   isLoadingDimensions, 
   handleReviewerChange, 
   handleReviewerDimensionChange, 
+  handleReviewerLLMModelChange, 
   handleReviewerLLMTemperatureChange,
   handleDeleteReviewer
 }) => (
@@ -129,6 +130,20 @@ const ReviewerDetails = ({
           </div>
         ))}
       </RadioGroup>
+    </div>
+    <div>
+      <Label htmlFor={`reviewer-llm-model-${index}`}>LLM Model</Label>
+      <Select onValueChange={(value) => handleReviewerLLMModelChange(index, value)} value={reviewer.llm_model}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select LLM Model" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="aws--anthropic.claude-3-5-sonnet-20240620-v1:0">
+            aws--anthropic.claude-3-5-sonnet-20240620-v1:0
+          </SelectItem>
+          <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
     <div>
       <Label htmlFor={`reviewer-llm-temperature-${index}`}>LLM Temperature: {reviewer.llm_temperature.toFixed(2)}</Label>

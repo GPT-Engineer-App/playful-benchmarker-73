@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddBenchmarkResult } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddBenchmarkResult, useUserSecrets } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
@@ -14,8 +14,9 @@ const StartBenchmark = () => {
   const navigate = useNavigate();
   const { session } = useSupabaseAuth();
   const { data: scenarios, isLoading: scenariosLoading } = useBenchmarkScenarios();
+  const { data: userSecrets, isLoading: secretsLoading } = useUserSecrets();
   const [selectedScenarios, setSelectedScenarios] = useState([]);
-  const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "localhost:8000");
+  const [systemVersion, setSystemVersion] = useState("localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
   const addBenchmarkResult = useAddBenchmarkResult();
 
@@ -27,16 +28,22 @@ const StartBenchmark = () => {
     );
   };
 
-  const ensureHttpPrefix = (url) => {
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return `http://${url}`;
-    }
-    return url;
-  };
-
   const handleStartBenchmark = useCallback(async () => {
     if (selectedScenarios.length === 0) {
       toast.error("Please select at least one scenario to run.");
+      return;
+    }
+
+    if (!userSecrets || userSecrets.length === 0) {
+      toast.error("No API key found. Please set up your secrets first.");
+      return;
+    }
+
+    const secrets = JSON.parse(userSecrets[0].secret);
+    const apiKey = secrets.ANTHROPIC_API_KEY;
+
+    if (!apiKey) {
+      toast.error("Anthropic API key not found. Please set up your secrets first.");
       return;
     }
 
@@ -46,8 +53,8 @@ const StartBenchmark = () => {
       for (const scenarioId of selectedScenarios) {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
-        // Call user impersonation function with ensured http prefix
-        const impersonationResults = await impersonateUser(scenario.prompt, ensureHttpPrefix(systemVersion));
+        // Call user impersonation function
+        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion, apiKey);
 
         // Save benchmark result
         await addBenchmarkResult.mutateAsync({
@@ -70,9 +77,9 @@ const StartBenchmark = () => {
     } finally {
       setIsRunning(false);
     }
-  }, [selectedScenarios, scenarios, systemVersion, session, addBenchmarkResult, navigate]);
+  }, [selectedScenarios, userSecrets, scenarios, systemVersion, session, addBenchmarkResult, navigate]);
 
-  if (scenariosLoading) {
+  if (scenariosLoading || secretsLoading) {
     return <div>Loading...</div>;
   }
 
@@ -103,11 +110,6 @@ const StartBenchmark = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="localhost:8000">localhost:8000</SelectItem>
-              {import.meta.env.VITE_SYSTEM_VERSION && (
-                <SelectItem value={import.meta.env.VITE_SYSTEM_VERSION}>
-                  {import.meta.env.VITE_SYSTEM_VERSION}
-                </SelectItem>
-              )}
               {/* Add more options here in the future */}
             </SelectContent>
           </Select>
