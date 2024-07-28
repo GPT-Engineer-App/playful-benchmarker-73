@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddBenchmarkResult } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddBenchmarkResult, useUserSecrets } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
@@ -13,7 +13,8 @@ import { impersonateUser } from "../lib/userImpersonation";
 const StartBenchmark = () => {
   const navigate = useNavigate();
   const { session } = useSupabaseAuth();
-  const { data: scenarios, isLoading } = useBenchmarkScenarios();
+  const { data: scenarios, isLoading: scenariosLoading } = useBenchmarkScenarios();
+  const { data: userSecrets, isLoading: secretsLoading } = useUserSecrets();
   const [selectedScenarios, setSelectedScenarios] = useState([]);
   const [systemVersion, setSystemVersion] = useState("localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
@@ -33,6 +34,19 @@ const StartBenchmark = () => {
       return;
     }
 
+    if (!userSecrets || userSecrets.length === 0) {
+      toast.error("No API key found. Please set up your secrets first.");
+      return;
+    }
+
+    const secrets = JSON.parse(userSecrets[0].secret);
+    const apiKey = secrets.ANTHROPIC_API_KEY;
+
+    if (!apiKey) {
+      toast.error("Anthropic API key not found. Please set up your secrets first.");
+      return;
+    }
+
     setIsRunning(true);
 
     try {
@@ -40,7 +54,7 @@ const StartBenchmark = () => {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
         // Call user impersonation function
-        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion);
+        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion, apiKey);
 
         // Save benchmark result
         await addBenchmarkResult.mutateAsync({
@@ -65,8 +79,8 @@ const StartBenchmark = () => {
     }
   };
 
-  if (isLoading) {
-    return <div>Loading scenarios...</div>;
+  if (scenariosLoading || secretsLoading) {
+    return <div>Loading...</div>;
   }
 
   return (

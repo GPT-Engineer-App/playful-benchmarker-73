@@ -1,27 +1,12 @@
-import { useUserSecrets } from '../integrations/supabase';
 import Anthropic from '@anthropic-ai/sdk';
 
-export async function callAnthropicLLM(prompt, model = 'claude-3-opus-20240229') {
+export async function callAnthropicLLM(prompt, apiKey, model = 'claude-3-opus-20240229') {
   try {
-    // Use the useUserSecrets hook to get the user's secrets
-    const { data: userSecrets, error: secretsError } = useUserSecrets();
-
-    if (secretsError) {
-      throw new Error('Failed to fetch user secrets');
-    }
-
-    if (!userSecrets || userSecrets.length === 0) {
-      throw new Error('No user secrets found');
-    }
-
-    const secrets = JSON.parse(userSecrets[0].secret);
-    const apiKey = secrets.ANTHROPIC_API_KEY;
-
     if (!apiKey) {
-      throw new Error('Anthropic API key not found');
+      throw new Error('Anthropic API key not provided');
     }
 
-    // Initialize the Anthropic client with the user's API key
+    // Initialize the Anthropic client with the provided API key
     const anthropic = new Anthropic({
       apiKey: apiKey,
     });
