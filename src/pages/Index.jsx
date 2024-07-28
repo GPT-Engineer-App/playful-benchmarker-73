@@ -4,6 +4,7 @@ import { useSupabaseAuth } from "../integrations/supabase/auth";
 import { useBenchmarkScenarios, useBenchmarkResults } from "../integrations/supabase";
 import ScenarioList from "../components/ScenarioList";
 import Navbar from "../components/Navbar";
+import TrajectoryMessages from "../components/TrajectoryMessages";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, PlayCircle, BarChart2, Settings } from "lucide-react";
 
@@ -14,6 +15,9 @@ const Index = () => {
 
   const totalScenarios = scenarios?.length || 0;
   const totalBenchmarks = benchmarkResults?.length || 0;
+
+  // Hardcoded project ID for demonstration purposes
+  const demoProjectId = "demo-project-id";
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -82,6 +86,8 @@ const Index = () => {
                 <ScenarioList />
               </CardContent>
             </Card>
+
+            <TrajectoryMessages projectId={demoProjectId} />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] space-y-6">
