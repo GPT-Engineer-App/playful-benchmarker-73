@@ -85,6 +85,12 @@ When the scenario is complete:
     const chatRequest = await callOpenAILLM(messages, 'gpt-4o', temperature);
     const project = await createProject(chatRequest, systemVersion);
 
+    // Add the OpenAI response as an assistant message
+    messages.push({
+      role: "assistant",
+      content: chatRequest
+    });
+
     return { projectId: project.id, initialRequest: chatRequest, messages };
   } catch (error) {
     console.error('Error in initial user impersonation:', error);
