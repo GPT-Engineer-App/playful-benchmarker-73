@@ -75,11 +75,18 @@ const StartBenchmark = () => {
           // Get the next assistant message
           const nextAssistantMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
           
-          if (nextAssistantMessage.toLowerCase().includes("task completed") || nextAssistantMessage.toLowerCase().includes("no further requests")) {
+          if (nextAssistantMessage.includes("<lov-scenario-finished/>")) {
             conversationComplete = true;
+            results.push({ type: 'scenario_finished', data: { message: 'Scenario completed successfully' } });
           } else {
-            messages.push({ role: "assistant", content: nextAssistantMessage });
-            chatRequest = nextAssistantMessage;
+            const chatRequestMatch = nextAssistantMessage.match(/<lov-chat-request>([\s\S]*?)<\/lov-chat-request>/);
+            if (chatRequestMatch) {
+              chatRequest = chatRequestMatch[1].trim();
+              messages.push({ role: "assistant", content: nextAssistantMessage });
+            } else {
+              console.warn("Unexpected assistant message format:", nextAssistantMessage);
+              results.push({ type: 'unexpected_message', data: { message: nextAssistantMessage } });
+            }
           }
 
           // Check for timeout after processing the response
