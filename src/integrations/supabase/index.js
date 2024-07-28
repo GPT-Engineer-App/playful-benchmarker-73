@@ -230,7 +230,7 @@ export const useAddBenchmarkScenario = () => {
         mutationFn: (newScenario) => fromSupabase(supabase.from('benchmark_scenarios').insert([{
             ...newScenario,
             timeout: newScenario.timeout || 300 // Default to 5 minutes if not provided
-        }])),
+        }]).select()),
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
         },
