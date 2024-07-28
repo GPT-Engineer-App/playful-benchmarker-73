@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useAddUserSecret } from "../integrations/supabase";
+import { useAddUserSecret, useUserSecrets, useUpdateUserSecret } from "../integrations/supabase";
 import { toast } from "sonner";
 
 const Secrets = () => {
@@ -14,6 +14,17 @@ const Secrets = () => {
   const navigate = useNavigate();
   const { session } = useSupabaseAuth();
   const addUserSecret = useAddUserSecret();
+  const updateUserSecret = useUpdateUserSecret();
+  const { data: existingSecrets, isLoading } = useUserSecrets();
+
+  useEffect(() => {
+    if (existingSecrets && existingSecrets.length > 0) {
+      const secrets = JSON.parse(existingSecrets[0].secret);
+      setAnthropicApiKey(secrets.ANTHROPIC_API_KEY || "");
+      setMultionApiKey(secrets.MULTION_API_KEY || "");
+      setGptEngineerTestToken(secrets.GPT_ENGINEER_TEST_TOKEN || "");
+    }
+  }, [existingSecrets]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,21 +33,34 @@ const Secrets = () => {
       return;
     }
 
+    const newSecrets = {
+      ...(anthropicApiKey && { ANTHROPIC_API_KEY: anthropicApiKey }),
+      ...(multionApiKey && { MULTION_API_KEY: multionApiKey }),
+      ...(gptEngineerTestToken && { GPT_ENGINEER_TEST_TOKEN: gptEngineerTestToken }),
+    };
+
     try {
-      await addUserSecret.mutateAsync({
-        user_id: session.user.id,
-        secret: JSON.stringify({
-          ANTHROPIC_API_KEY: anthropicApiKey,
-          MULTION_API_KEY: multionApiKey,
-          GPT_ENGINEER_TEST_TOKEN: gptEngineerTestToken,
-        }),
-      });
+      if (existingSecrets && existingSecrets.length > 0) {
+        await updateUserSecret.mutateAsync({
+          id: existingSecrets[0].id,
+          secret: JSON.stringify(newSecrets),
+        });
+      } else {
+        await addUserSecret.mutateAsync({
+          user_id: session.user.id,
+          secret: JSON.stringify(newSecrets),
+        });
+      }
       toast.success("Secrets saved successfully");
       navigate("/");
     } catch (error) {
       toast.error("Failed to save secrets: " + error.message);
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -55,7 +79,6 @@ const Secrets = () => {
               type="password"
               value={anthropicApiKey}
               onChange={(e) => setAnthropicApiKey(e.target.value)}
-              required
             />
           </div>
           <div>
@@ -65,7 +88,6 @@ const Secrets = () => {
               type="password"
               value={multionApiKey}
               onChange={(e) => setMultionApiKey(e.target.value)}
-              required
             />
           </div>
           <div>
@@ -75,7 +97,6 @@ const Secrets = () => {
               type="password"
               value={gptEngineerTestToken}
               onChange={(e) => setGptEngineerTestToken(e.target.value)}
-              required
             />
           </div>
           <Button type="submit" className="w-full">
