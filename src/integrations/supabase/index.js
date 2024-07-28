@@ -65,6 +65,15 @@ const fromSupabase = async (query) => {
 | run_count        | integer     | number | true     |
 | created_at       | timestamptz | string | true     |
 
+### review_dimensions
+
+| name        | type        | format | required |
+|-------------|-------------|--------|----------|
+| id          | uuid        | string | true     |
+| name        | text        | string | true     |
+| description | text        | string | false    |
+| created_at  | timestamptz | string | true     |
+
 */
 
 // User Secrets
@@ -227,6 +236,47 @@ export const useDeleteReviewer = () => {
         mutationFn: (id) => fromSupabase(supabase.from('reviewers').delete().eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('reviewers');
+        },
+    });
+};
+
+// Review Dimensions
+export const useReviewDimensions = () => useQuery({
+    queryKey: ['review_dimensions'],
+    queryFn: () => fromSupabase(supabase.from('review_dimensions').select('*'))
+});
+
+export const useReviewDimension = (id) => useQuery({
+    queryKey: ['review_dimensions', id],
+    queryFn: () => fromSupabase(supabase.from('review_dimensions').select('*').eq('id', id).single())
+});
+
+export const useAddReviewDimension = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (newDimension) => fromSupabase(supabase.from('review_dimensions').insert([newDimension])),
+        onSuccess: () => {
+            queryClient.invalidateQueries('review_dimensions');
+        },
+    });
+};
+
+export const useUpdateReviewDimension = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('review_dimensions').update(updateData).eq('id', id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries('review_dimensions');
+        },
+    });
+};
+
+export const useDeleteReviewDimension = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id) => fromSupabase(supabase.from('review_dimensions').delete().eq('id', id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries('review_dimensions');
         },
     });
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useAddBenchmarkScenario, useAddReviewer } from "../integrations/supabase";
+import { useAddBenchmarkScenario, useAddReviewer, useReviewDimensions } from "../integrations/supabase";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
 import { toast } from "sonner";
 
@@ -29,6 +29,7 @@ const CreateScenario = () => {
   const { session, logout } = useSupabaseAuth();
   const addBenchmarkScenario = useAddBenchmarkScenario();
   const addReviewer = useAddReviewer();
+  const { data: reviewDimensions, isLoading: isLoadingDimensions } = useReviewDimensions();
 
   const handleScenarioChange = (e) => {
     const { name, value } = e.target;
@@ -48,6 +49,14 @@ const CreateScenario = () => {
     setReviewers((prev) => {
       const newReviewers = [...prev];
       newReviewers[index] = { ...newReviewers[index], [name]: value };
+      return newReviewers;
+    });
+  };
+
+  const handleReviewerDimensionChange = (index, value) => {
+    setReviewers((prev) => {
+      const newReviewers = [...prev];
+      newReviewers[index] = { ...newReviewers[index], dimension: value };
       return newReviewers;
     });
   };
@@ -197,13 +206,22 @@ const CreateScenario = () => {
                 <h3 className="text-lg font-semibold">Reviewer {index + 1}</h3>
                 <div>
                   <Label htmlFor={`dimension-${index}`}>Dimension</Label>
-                  <Input
-                    id={`dimension-${index}`}
-                    name="dimension"
-                    value={reviewer.dimension}
-                    onChange={(e) => handleReviewerChange(index, e)}
-                    required
-                  />
+                  <Select onValueChange={(value) => handleReviewerDimensionChange(index, value)} value={reviewer.dimension}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Dimension" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isLoadingDimensions ? (
+                        <SelectItem value="">Loading dimensions...</SelectItem>
+                      ) : (
+                        reviewDimensions?.map((dimension) => (
+                          <SelectItem key={dimension.id} value={dimension.name}>
+                            {dimension.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor={`reviewer-description-${index}`}>Description</Label>
