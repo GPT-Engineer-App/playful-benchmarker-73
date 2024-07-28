@@ -81,7 +81,7 @@ const StartBenchmark = () => {
     } finally {
       setIsRunning(false);
     }
-  }, [selectedScenarios, scenarios, systemVersion, session, addBenchmarkResult, addRun, navigate]);
+  }, [selectedScenarios, scenarios, systemVersion, session, addRun, addResult, navigate]);
 
   if (scenariosLoading) {
     return <div>Loading...</div>;
