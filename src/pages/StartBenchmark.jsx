@@ -1,37 +1,7 @@
-import { useState } from "react";
-import { toast } from "sonner";
 import Navbar from "../components/Navbar";
-import ScenarioSelection from "../components/ScenarioSelection";
-import SystemVersionSelection from "../components/SystemVersionSelection";
-import { useBenchmarkRunner } from "../hooks/useBenchmarkRunner";
+import BenchmarkForm from "../components/BenchmarkForm";
 
-const StartBenchmark = () => {
-  const navigate = useNavigate();
-  const { session } = useSupabaseAuth();
-  const { data: scenarios, isLoading: scenariosLoading } = useBenchmarkScenarios();
-  const [selectedScenarios, setSelectedScenarios] = useState([]);
-  const [systemVersion, setSystemVersion] = useState("http://localhost:8000");
-  const [isRunning, setIsRunning] = useState(false);
-  const addRun = useAddRun();
-  const addResult = useAddResult();
-  const updateRun = useUpdateRun();
-  const { data: runs } = useRuns();
-  const { data: userSecrets } = useUserSecrets();
-
-  const sendChatMessage = async (projectId, message, systemVersion, gptEngineerTestToken) => {
-    const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${gptEngineerTestToken}`,
-      },
-      body: JSON.stringify({ message, images: [], mode: 'instant' }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to send chat message');
-    }
-    return response.json();
-  };
+const StartBenchmark = () => (
 
   const handleSingleIteration = useCallback(async (gptEngineerTestToken) => {
     if (!runs || runs.length === 0) {
