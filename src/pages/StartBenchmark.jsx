@@ -73,7 +73,7 @@ const StartBenchmark = () => {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
         // Call initial user impersonation function
-        const { projectId, initialRequest, messages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
+        const { projectId, initialRequest, messages: initialMessages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
         // Create new run entry
         const runData = await addRun.mutateAsync({
@@ -88,6 +88,7 @@ const StartBenchmark = () => {
         const results = [];
         let conversationComplete = false;
         let chatRequest = initialRequest;
+        let messages = [...initialMessages];
 
         try {
           // Start the conversation loop
