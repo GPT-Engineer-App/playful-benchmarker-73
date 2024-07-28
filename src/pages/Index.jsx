@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
+import { useBenchmarkScenarios, useBenchmarkResults } from "../integrations/supabase";
 import ScenarioList from "../components/ScenarioList";
 import Navbar from "../components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,11 @@ import { PlusCircle, PlayCircle, BarChart2, Settings } from "lucide-react";
 
 const Index = () => {
   const { session } = useSupabaseAuth();
+  const { data: scenarios, isLoading: isLoadingScenarios } = useBenchmarkScenarios();
+  const { data: benchmarkResults, isLoading: isLoadingResults } = useBenchmarkResults();
+
+  const totalScenarios = scenarios?.length || 0;
+  const totalBenchmarks = benchmarkResults?.length || 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -30,10 +36,9 @@ const Index = () => {
                   <BarChart2 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    +0% from last month
-                  </p>
+                  <div className="text-2xl font-bold">
+                    {isLoadingScenarios ? "Loading..." : totalScenarios}
+                  </div>
                 </CardContent>
               </Card>
               <Card>
@@ -42,10 +47,9 @@ const Index = () => {
                   <Settings className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    +0% from last month
-                  </p>
+                  <div className="text-2xl font-bold">
+                    {isLoadingResults ? "Loading..." : totalBenchmarks}
+                  </div>
                 </CardContent>
               </Card>
               <Card className="col-span-2">
