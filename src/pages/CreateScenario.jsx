@@ -10,6 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useAddBenchmarkScenario, useAddReviewer, useReviewDimensions } from "../integrations/supabase";
@@ -54,11 +55,15 @@ const CreateScenario = () => {
   };
 
   const handleReviewerDimensionChange = (index, value) => {
-    setReviewers((prev) => {
-      const newReviewers = [...prev];
-      newReviewers[index] = { ...newReviewers[index], dimension: value };
-      return newReviewers;
-    });
+    if (value === "create_new") {
+      navigate("/create-review-dimension");
+    } else {
+      setReviewers((prev) => {
+        const newReviewers = [...prev];
+        newReviewers[index] = { ...newReviewers[index], dimension: value };
+        return newReviewers;
+      });
+    }
   };
 
   const handleReviewerLLMModelChange = (index, value) => {
@@ -214,11 +219,19 @@ const CreateScenario = () => {
                       {isLoadingDimensions ? (
                         <SelectItem value="">Loading dimensions...</SelectItem>
                       ) : (
-                        reviewDimensions?.map((dimension) => (
-                          <SelectItem key={dimension.id} value={dimension.name}>
-                            {dimension.name}
+                        <>
+                          {reviewDimensions?.map((dimension) => (
+                            <SelectItem key={dimension.id} value={dimension.name}>
+                              {dimension.name}
+                            </SelectItem>
+                          ))}
+                          <SelectSeparator />
+                          <SelectItem value="create_new">
+                            <Link to="/create-review-dimension" className="flex items-center text-blue-500 hover:underline">
+                              <span className="mr-2">+</span> Create New Dimension
+                            </Link>
                           </SelectItem>
-                        ))
+                        </>
                       )}
                     </SelectContent>
                   </Select>
