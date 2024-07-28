@@ -59,14 +59,15 @@ const StartBenchmark = () => {
         // Start the conversation loop
         const startTime = Date.now();
         while (!conversationComplete) {
+          // Send chat message
+          const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
+          results.push({ type: 'chat_message_sent', data: chatResponse });
+
+          // Check for timeout after sending the message
           if (Date.now() - startTime > scenario.timeout * 1000) {
             results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
             break;
           }
-
-          // Send chat message
-          const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
-          results.push({ type: 'chat_message_sent', data: chatResponse });
 
           // Add the system's response to the messages
           messages.push({ role: "assistant", content: chatResponse.message });
@@ -79,6 +80,12 @@ const StartBenchmark = () => {
           } else {
             messages.push({ role: "user", content: nextUserMessage });
             chatRequest = nextUserMessage;
+          }
+
+          // Check for timeout after processing the response
+          if (Date.now() - startTime > scenario.timeout * 1000) {
+            results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
+            break;
           }
         }
 
