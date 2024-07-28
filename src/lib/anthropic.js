@@ -1,30 +1,37 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { supabase } from '../integrations/supabase';
 
-export async function callAnthropicLLM(prompt, apiKey, model = 'claude-3-opus-20240229') {
+export async function callOpenAILLM(prompt, model = 'gpt-4') {
   try {
-    if (!apiKey) {
-      throw new Error('Anthropic API key not provided');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('User not authenticated');
     }
 
-    // Initialize the Anthropic client with the provided API key
-    const anthropic = new Anthropic({
-      apiKey: apiKey,
+    const systemVersion = import.meta.env.VITE_SYSTEM_VERSION || 'http://localhost:8000';
+
+    const response = await fetch(`${systemVersion}/openai/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: 'You are an AI assistant impersonating a user interacting with a GPT Engineer system. When you want to send a request to the system, use the <lov-chat-request> XML tag.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 1000
+      })
     });
 
-    // Call the Anthropic API using the SDK
-    const response = await anthropic.messages.create({
-      model: model,
-      max_tokens: 1000,
-      messages: [
-        { role: 'system', content: 'You are an AI assistant impersonating a user interacting with a GPT Engineer system. When you want to send a request to the system, use the <lov-chat-request> XML tag.' },
-        { role: 'user', content: prompt }
-      ],
-    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    // Extract and return the assistant's response
-    return response.content[0].text;
+    const data = await response.json();
+    return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error calling Anthropic LLM:', error);
+    console.error('Error calling OpenAI LLM:', error);
     throw error;
   }
 }
