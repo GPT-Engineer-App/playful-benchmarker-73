@@ -8,11 +8,9 @@ const parseLLMResponse = (response) => {
   return Array.from(chatRequests).map(node => node.textContent.trim());
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 // Function to create a new project
-const createProject = async (description) => {
-  const response = await fetch(`${API_URL}/projects`, {
+const createProject = async (description, systemVersion) => {
+  const response = await fetch(`http://${systemVersion}/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -26,8 +24,8 @@ const createProject = async (description) => {
 };
 
 // Function to send a chat message to a project
-const sendChatMessage = async (projectId, message) => {
-  const response = await fetch(`${API_URL}/projects/${projectId}/chat`, {
+const sendChatMessage = async (projectId, message, systemVersion) => {
+  const response = await fetch(`http://${systemVersion}/projects/${projectId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -41,7 +39,7 @@ const sendChatMessage = async (projectId, message) => {
 };
 
 // Main function to handle user impersonation
-export const impersonateUser = async (prompt) => {
+export const impersonateUser = async (prompt, systemVersion) => {
   try {
     const llmResponse = await callAnthropicLLM(prompt);
     const chatRequests = parseLLMResponse(llmResponse);
@@ -54,13 +52,13 @@ export const impersonateUser = async (prompt) => {
       
       if (i === 0) {
         // For the first request, create a new project
-        const project = await createProject(request);
+        const project = await createProject(request, systemVersion);
         projectId = project.id;
         results.push({ type: 'project_created', data: project });
       }
       
       // Send chat message for all requests
-      const chatResponse = await sendChatMessage(projectId, request);
+      const chatResponse = await sendChatMessage(projectId, request, systemVersion);
       results.push({ type: 'chat_message_sent', data: chatResponse });
     }
 

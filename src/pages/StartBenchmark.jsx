@@ -40,7 +40,7 @@ const StartBenchmark = () => {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
         // Call user impersonation function
-        const impersonationResults = await impersonateUser(scenario.prompt);
+        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion);
 
         // Save benchmark result
         await addBenchmarkResult.mutateAsync({
