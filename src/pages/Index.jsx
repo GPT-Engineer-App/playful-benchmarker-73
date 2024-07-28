@@ -21,6 +21,7 @@ const Index = () => {
               {session ? (
                 <>
                   <li><Link to="/secrets" className="hover:underline">Secrets</Link></li>
+                  <li><Link to="/create-scenario" className="hover:underline">Create Scenario</Link></li>
                   <li><Button onClick={handleLogout} variant="ghost" className="h-9 px-4 py-2">Logout</Button></li>
                 </>
               ) : (
@@ -41,9 +42,14 @@ const Index = () => {
             <p className="mb-6">
               Hello, {session.user.email}! You're logged in.
             </p>
-            <Button asChild className="mr-4">
-              <Link to="/secrets">Manage Secrets</Link>
-            </Button>
+            <div className="space-x-4">
+              <Button asChild className="mr-4">
+                <Link to="/secrets">Manage Secrets</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/create-scenario">Create Scenario</Link>
+              </Button>
+            </div>
           </div>
         ) : (
           <div>
