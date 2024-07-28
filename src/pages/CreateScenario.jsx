@@ -16,7 +16,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { useAddBenchmarkScenario, useAddReviewer, useReviewDimensions } from "../integrations/supabase";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { supabase } from "../integrations/supabase";
 import { toast } from "sonner";
 
 const CreateScenario = () => {
@@ -132,24 +131,14 @@ const CreateScenario = () => {
     }
 
     try {
-      // Use the Supabase client directly for more control over the response
-      const { data: scenarioData, error: scenarioError } = await supabase
-        .from('benchmark_scenarios')
-        .insert([scenario])
-        .select();
-
+      const { data: scenarioData, error: scenarioError } = await addBenchmarkScenario.mutateAsync(scenario);
       if (scenarioError) throw scenarioError;
-      if (!scenarioData || scenarioData.length === 0) throw new Error("No scenario data returned");
-
-      const createdScenarioId = scenarioData[0].id;
 
       for (const reviewer of reviewers) {
-        const { error: reviewerError } = await supabase
-          .from('reviewers')
-          .insert({
-            ...reviewer,
-            scenario_id: createdScenarioId,
-          });
+        const { error: reviewerError } = await addReviewer.mutateAsync({
+          ...reviewer,
+          scenario_id: scenarioData[0].id,
+        });
         if (reviewerError) throw reviewerError;
       }
 
@@ -160,8 +149,7 @@ const CreateScenario = () => {
       toast.success("Scenario and reviewers created successfully");
       navigate("/");
     } catch (error) {
-      console.error("Error creating scenario:", error);
-      toast.error(`Failed to create scenario: ${error.message}`);
+      toast.error("Failed to create scenario: " + error.message);
     }
   };
 
