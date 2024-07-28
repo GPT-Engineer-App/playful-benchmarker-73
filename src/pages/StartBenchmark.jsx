@@ -47,7 +47,19 @@ const StartBenchmark = () => {
     }
 
     if (!runStarted) {
-      console.log("Run was not in 'paused' state, skipping");
+      // Check if the run timed out
+      const { data: runData } = await supabase
+        .from('runs')
+        .select('state')
+        .eq('id', pausedRun.id)
+        .single();
+
+      if (runData.state === 'timed_out') {
+        console.log("Run timed out:", pausedRun.id);
+        toast.error(`Run ${pausedRun.id} timed out`);
+      } else {
+        console.log("Run was not in 'paused' state, skipping");
+      }
       return;
     }
 
@@ -118,11 +130,20 @@ const StartBenchmark = () => {
 
       if (error) console.error('Error updating time usage:', error);
 
-      // Update run state back to 'paused'
-      await updateRun.mutateAsync({
-        id: pausedRun.id,
-        state: 'paused',
-      });
+      // Check if the run has timed out
+      const { data: runData } = await supabase
+        .from('runs')
+        .select('state')
+        .eq('id', pausedRun.id)
+        .single();
+
+      if (runData.state !== 'timed_out') {
+        // Update run state back to 'paused' only if it hasn't timed out
+        await updateRun.mutateAsync({
+          id: pausedRun.id,
+          state: 'paused',
+        });
+      }
     }
   }, [runs, updateRun, addResult, systemVersion, sendChatMessage, supabase]);
 
