@@ -15,7 +15,7 @@ const StartBenchmark = () => {
   const { session } = useSupabaseAuth();
   const { data: scenarios, isLoading: scenariosLoading } = useBenchmarkScenarios();
   const [selectedScenarios, setSelectedScenarios] = useState([]);
-  const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "localhost:8000");
+  const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "http://localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
   const addBenchmarkResult = useAddBenchmarkResult();
 
@@ -25,13 +25,6 @@ const StartBenchmark = () => {
         ? prev.filter((id) => id !== scenarioId)
         : [...prev, scenarioId]
     );
-  };
-
-  const ensureHttpPrefix = (url) => {
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return `http://${url}`;
-    }
-    return url;
   };
 
   const handleStartBenchmark = useCallback(async () => {
@@ -46,8 +39,8 @@ const StartBenchmark = () => {
       for (const scenarioId of selectedScenarios) {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
-        // Call user impersonation function with ensured http prefix
-        const impersonationResults = await impersonateUser(scenario.prompt, ensureHttpPrefix(systemVersion));
+        // Call user impersonation function
+        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion);
 
         // Save benchmark result
         await addBenchmarkResult.mutateAsync({
@@ -102,10 +95,10 @@ const StartBenchmark = () => {
               <SelectValue placeholder="Select system version" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="localhost:8000">localhost:8000</SelectItem>
+              <SelectItem value="http://localhost:8000">http://localhost:8000</SelectItem>
               {import.meta.env.VITE_SYSTEM_VERSION && (
-                <SelectItem value={import.meta.env.VITE_SYSTEM_VERSION}>
-                  {import.meta.env.VITE_SYSTEM_VERSION}
+                <SelectItem value={`http://${import.meta.env.VITE_SYSTEM_VERSION}`}>
+                  http://{import.meta.env.VITE_SYSTEM_VERSION}
                 </SelectItem>
               )}
               {/* Add more options here in the future */}
