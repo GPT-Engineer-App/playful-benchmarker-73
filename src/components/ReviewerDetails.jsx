@@ -7,6 +7,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ReviewerDetails = ({ 
   reviewer, 
@@ -22,15 +33,33 @@ const ReviewerDetails = ({
   <div className="border p-4 rounded-md space-y-2">
     <div className="flex justify-between items-center">
       <h3 className="text-lg font-semibold">Reviewer {index + 1}</h3>
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={() => handleDeleteReviewer(index)}
-        className="flex items-center"
-      >
-        <Trash2 className="h-4 w-4 mr-2" />
-        Delete
-      </Button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="flex items-center"
+            type="button"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this reviewer?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the reviewer from the scenario.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteReviewer(index)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
     <div>
       <Label htmlFor={`dimension-${index}`}>Dimension</Label>

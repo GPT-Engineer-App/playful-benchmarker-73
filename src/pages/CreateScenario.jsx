@@ -67,37 +67,18 @@ const CreateScenario = () => {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Reviewers</h2>
             {reviewers.map((reviewer, index) => (
-              <AlertDialog key={index}>
-                <ReviewerDetails
-                  reviewer={reviewer}
-                  index={index}
-                  reviewDimensions={reviewDimensions}
-                  isLoadingDimensions={isLoadingDimensions}
-                  handleReviewerChange={handleReviewerChange}
-                  handleReviewerDimensionChange={handleReviewerDimensionChange}
-                  handleReviewerLLMModelChange={handleReviewerLLMModelChange}
-                  handleReviewerLLMTemperatureChange={handleReviewerLLMTemperatureChange}
-                  handleDeleteReviewer={(index) => (
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">Delete</Button>
-                    </AlertDialogTrigger>
-                  )}
-                />
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to delete this reviewer?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the reviewer from the scenario.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDeleteReviewer(index)}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <ReviewerDetails
+                key={index}
+                reviewer={reviewer}
+                index={index}
+                reviewDimensions={reviewDimensions}
+                isLoadingDimensions={isLoadingDimensions}
+                handleReviewerChange={handleReviewerChange}
+                handleReviewerDimensionChange={handleReviewerDimensionChange}
+                handleReviewerLLMModelChange={handleReviewerLLMModelChange}
+                handleReviewerLLMTemperatureChange={handleReviewerLLMTemperatureChange}
+                handleDeleteReviewer={handleDeleteReviewer}
+              />
             ))}
             <Button type="button" onClick={addReviewerField}>Add Reviewer</Button>
           </div>
