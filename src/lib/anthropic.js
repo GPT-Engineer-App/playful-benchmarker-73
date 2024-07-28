@@ -7,12 +7,10 @@ export async function callOpenAILLM(prompt, model = 'gpt-4o') {
       throw new Error('User not authenticated');
     }
 
-    const baseUrl = 'https://lov-p-33afc4d2-8ae8-4a62-b1f1-0561e587db8e.fly.dev';
-    const response = await fetch(`${baseUrl}/openai/chat/completions`, {
+    const response = await fetch(`${session.system_version}/openai/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         model: model,
