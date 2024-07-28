@@ -91,7 +91,7 @@ When the scenario is complete:
       content: chatRequest
     });
 
-    return { projectId: project.id, initialRequest: chatRequest, messages };
+    return { projectId: project.id, initialRequest: chatRequest, messages, link: project.link };
   } catch (error) {
     console.error('Error in initial user impersonation:', error);
     throw error;

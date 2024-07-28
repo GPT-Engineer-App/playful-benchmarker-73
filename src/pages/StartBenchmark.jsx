@@ -218,6 +218,20 @@ const StartBenchmark = () => {
         // Call initial user impersonation function
         const { projectId, initialRequest, messages: initialMessages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
+        // Get the project link from the impersonateUser response
+        const projectResponse = await fetch(`${systemVersion}/projects/${projectId}`, {
+          headers: {
+            'Authorization': `Bearer ${gptEngineerTestToken}`,
+          },
+        });
+        
+        if (!projectResponse.ok) {
+          throw new Error(`Failed to fetch project details: ${projectResponse.statusText}`);
+        }
+        
+        const projectData = await projectResponse.json();
+        const projectLink = projectData.link;
+
         // Create a new run entry with 'paused' state
         const { data: newRun, error: createRunError } = await supabase
           .from('runs')
@@ -226,7 +240,7 @@ const StartBenchmark = () => {
             system_version: systemVersion,
             project_id: projectId,
             user_id: session.user.id,
-            link: `${systemVersion}/projects/${projectId}`,
+            link: projectLink,
             state: 'paused'
           })
           .select()
