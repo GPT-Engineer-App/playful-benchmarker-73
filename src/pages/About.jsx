@@ -24,7 +24,10 @@ const About = () => {
                   <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
                 </>
               ) : (
-                <li><Link to="/login" className="hover:underline">Login</Link></li>
+                <>
+                  <li><Link to="/login" className="hover:underline">Login</Link></li>
+                  <li><Link to="/signup" className="hover:underline">Sign Up</Link></li>
+                </>
               )}
             </ul>
           </nav>

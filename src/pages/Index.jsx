@@ -24,7 +24,10 @@ const Index = () => {
                   <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
                 </>
               ) : (
-                <li><Link to="/login" className="hover:underline">Login</Link></li>
+                <>
+                  <li><Link to="/login" className="hover:underline">Login</Link></li>
+                  <li><Link to="/signup" className="hover:underline">Sign Up</Link></li>
+                </>
               )}
             </ul>
           </nav>
@@ -43,12 +46,22 @@ const Index = () => {
             </Button>
           </div>
         ) : (
-          <p className="mb-6">
-            Lovable Benchmarks is a cutting-edge tool designed for automated benchmarking of GPT Engineer. 
-            Our platform provides comprehensive insights into the performance and capabilities of AI-driven engineering solutions.
-          </p>
+          <div>
+            <p className="mb-6">
+              Lovable Benchmarks is a cutting-edge tool designed for automated benchmarking of GPT Engineer. 
+              Our platform provides comprehensive insights into the performance and capabilities of AI-driven engineering solutions.
+            </p>
+            <div className="space-x-4">
+              <Button asChild>
+                <Link to="/login">Login</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/signup">Sign Up</Link>
+              </Button>
+            </div>
+          </div>
         )}
-        <Button asChild>
+        <Button asChild className="mt-4">
           <Link to="/about">Learn More</Link>
         </Button>
       </main>
