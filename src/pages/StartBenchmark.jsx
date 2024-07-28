@@ -171,7 +171,7 @@ const StartBenchmark = () => {
         // Call initial user impersonation function
         const { projectId, initialRequest, messages: initialMessages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
-        // Transactionally create new run entry with 'running' state
+        // Transactionally create new run entry with 'paused' state
         const { data: newRun, error: runError } = await supabase
           .rpc('start_run', {
             p_scenario_id: scenarioId,
@@ -184,12 +184,6 @@ const StartBenchmark = () => {
         if (runError) throw new Error(`Failed to start run: ${runError.message}`);
 
         toast.success(`Benchmark started for scenario: ${scenario.name}`);
-
-        // Immediately pause the run after creating it
-        await updateRun.mutateAsync({
-          id: newRun,
-          state: 'paused',
-        });
       }
 
       toast.success("All benchmarks started successfully!");

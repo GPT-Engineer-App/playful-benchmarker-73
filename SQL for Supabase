@@ -27,7 +27,7 @@ DECLARE
   new_run_id UUID;
 BEGIN
   INSERT INTO runs (scenario_id, system_version, project_id, user_id, state, link)
-  VALUES (p_scenario_id, p_system_version, p_project_id, p_user_id, 'running', p_link)
+  VALUES (p_scenario_id, p_system_version, p_project_id, p_user_id, 'paused', p_link)
   RETURNING id INTO new_run_id;
 
   RETURN new_run_id;
