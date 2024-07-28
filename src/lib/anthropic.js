@@ -1,6 +1,6 @@
 import { supabase } from '../integrations/supabase';
 
-export async function callOpenAILLM(prompt, model = 'gpt-4') {
+export async function callOpenAILLM(prompt, model = 'gpt-4o') {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
