@@ -3,25 +3,28 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSupabaseAuth } from "../integrations/supabase/auth";
+import { supabase } from "../integrations/supabase";
 import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { supabase } = useSupabaseAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      toast.success("Logged in successfully");
-      navigate("/");
+      if (data.user && data.session) {
+        toast.success("Logged in successfully");
+        navigate("/");
+      } else {
+        throw new Error("Login failed. Please try again.");
+      }
     } catch (error) {
       toast.error(error.message);
     }
