@@ -1,18 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun, useUserSecrets, useRuns } from "../integrations/supabase";
-import { supabase } from "../integrations/supabase";
+import { useState } from "react";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
-import { impersonateUser } from "../lib/userImpersonation";
-import { callOpenAILLM } from "../lib/anthropic";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import ScenarioSelection from "../components/ScenarioSelection";
+import SystemVersionSelection from "../components/SystemVersionSelection";
+import { useBenchmarkRunner } from "../hooks/useBenchmarkRunner";
 
 const StartBenchmark = () => {
   const navigate = useNavigate();
@@ -273,37 +264,30 @@ const StartBenchmark = () => {
     return <div>Loading...</div>;
   }
 
+  const {
+    selectedScenarios,
+    setSelectedScenarios,
+    systemVersion,
+    setSystemVersion,
+    isRunning,
+    handleStartBenchmark
+  } = useBenchmarkRunner();
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Select Scenarios</h2>
-          <div className="space-y-4 mb-8">
-            {scenarios.map((scenario) => (
-              <div key={scenario.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={scenario.id}
-                  checked={selectedScenarios.includes(scenario.id)}
-                  onCheckedChange={() => handleScenarioToggle(scenario.id)}
-                />
-                <Label htmlFor={scenario.id}>{scenario.name}</Label>
-              </div>
-            ))}
-          </div>
+          <ScenarioSelection
+            selectedScenarios={selectedScenarios}
+            setSelectedScenarios={setSelectedScenarios}
+          />
 
-          <h2 className="text-2xl font-bold mb-4">Select System Version</h2>
-          <Select value={systemVersion} onValueChange={setSystemVersion}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select system version" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="http://localhost:8000">http://localhost:8000</SelectItem>
-              <SelectItem value="https://api.gpt-engineer.com">https://api.gpt-engineer.com</SelectItem>
-              {/* Add more options here in the future */}
-            </SelectContent>
-          </Select>
+          <SystemVersionSelection
+            systemVersion={systemVersion}
+            setSystemVersion={setSystemVersion}
+          />
 
           <Button 
             onClick={handleStartBenchmark} 
