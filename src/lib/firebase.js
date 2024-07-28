@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyC8MAnZTLUBttWHlEIMl0u8gGI0R5oGnXU",
+  authDomain: "gpt-engineer-dev.firebaseapp.com",
+  projectId: "gpt-engineer-dev",
+  storageBucket: "gpt-engineer-dev.appspot.com",
+  messagingSenderId: "435422046193",
+  appId: "1:435422046193:web:36e2c4049799e14110c650"
 };
 
 const app = initializeApp(firebaseConfig);
