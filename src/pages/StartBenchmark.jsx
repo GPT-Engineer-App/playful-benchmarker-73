@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
 import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun, useUserSecrets, useRuns } from "../integrations/supabase";
+import { supabase } from "../integrations/supabase"; // Add this line
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
@@ -160,7 +161,7 @@ const StartBenchmark = () => {
         });
       }
     }
-  }, [runs, updateRun, addResult, systemVersion, sendChatMessage, supabase]);
+  }, [runs, updateRun, addResult, systemVersion, sendChatMessage, supabase, toast]);
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
