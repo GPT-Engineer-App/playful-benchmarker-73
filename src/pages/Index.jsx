@@ -1,23 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useBenchmarkResults } from "../integrations/supabase";
+import { useBenchmarkScenarios, useRuns } from "../integrations/supabase";
 import ScenarioList from "../components/ScenarioList";
+import RunsList from "../components/RunsList";
 import Navbar from "../components/Navbar";
-import TrajectoryMessages from "../components/TrajectoryMessages";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, PlayCircle, BarChart2, Settings } from "lucide-react";
 
 const Index = () => {
   const { session } = useSupabaseAuth();
   const { data: scenarios, isLoading: isLoadingScenarios } = useBenchmarkScenarios();
-  const { data: benchmarkResults, isLoading: isLoadingResults } = useBenchmarkResults();
+  const { data: runs, isLoading: isLoadingRuns } = useRuns();
 
   const totalScenarios = scenarios?.length || 0;
-  const totalBenchmarks = benchmarkResults?.length || 0;
-
-  // Hardcoded project ID for demonstration purposes
-  const demoProjectId = "demo-project-id";
+  const totalRuns = runs?.length || 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -47,12 +44,12 @@ const Index = () => {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Benchmarks Run</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Runs</CardTitle>
                   <Settings className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {isLoadingResults ? "Loading..." : totalBenchmarks}
+                    {isLoadingRuns ? "Loading..." : totalRuns}
                   </div>
                 </CardContent>
               </Card>
@@ -87,7 +84,15 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <TrajectoryMessages projectId={demoProjectId} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Runs</CardTitle>
+                <CardDescription>A list of your most recent benchmark runs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RunsList />
+              </CardContent>
+            </Card>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] space-y-6">
