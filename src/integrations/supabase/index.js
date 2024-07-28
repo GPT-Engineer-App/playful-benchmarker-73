@@ -21,60 +21,71 @@ const fromSupabase = async (query) => {
 
 ### user_secrets
 
-| name       | type        | format | required |
-|------------|-------------|--------|----------|
-| id         | uuid        | string | true     |
-| user_id    | uuid        | string | true     |
-| secret     | text        | string | true     |
-| created_at | timestamptz | string | true     |
+| name       | type                   | format | required |
+|------------|------------------------|--------|----------|
+| id         | uuid                   | string | true     |
+| user_id    | uuid                   | string | true     |
+| secret     | text                   | string | true     |
+| created_at | timestamp with time zone | string | true     |
 
 ### reviewers
 
-| name             | type        | format | required |
-|------------------|-------------|--------|----------|
-| id               | uuid        | string | true     |
-| scenario_id      | uuid        | string | true     |
-| dimension        | text        | string | true     |
-| description      | text        | string | true     |
-| prompt           | text        | string | true     |
-| weight           | numeric     | number | true     |
-| llm_model        | text        | string | true     |
-| llm_temperature  | numeric     | number | true     |
-| run_count        | integer     | number | true     |
-| created_at       | timestamptz | string | true     |
-| version          | integer     | number | true     |
+| name             | type                   | format  | required |
+|------------------|------------------------|---------|----------|
+| id               | uuid                   | string  | true     |
+| scenario_id      | uuid                   | string  | true     |
+| dimension        | text                   | string  | true     |
+| description      | text                   | string  | true     |
+| prompt           | text                   | string  | true     |
+| weight           | numeric                | number  | true     |
+| llm_model        | text                   | string  | true     |
+| llm_temperature  | numeric                | number  | true     |
+| run_count        | integer                | number  | true     |
+| created_at       | timestamp with time zone | string  | true     |
+| version          | integer                | number  | false    |
 
 ### review_dimensions
 
-| name        | type        | format | required |
-|-------------|-------------|--------|----------|
-| id          | uuid        | string | true     |
-| name        | text        | string | true     |
-| description | text        | string | false    |
-| created_at  | timestamptz | string | true     |
+| name        | type                   | format | required |
+|-------------|------------------------|--------|----------|
+| id          | uuid                   | string | true     |
+| name        | text                   | string | true     |
+| description | text                   | string | false    |
+| created_at  | timestamp with time zone | string | true     |
 
 ### benchmark_scenarios
 
-| name             | type        | format | required |
-|------------------|-------------|--------|----------|
-| id               | uuid        | string | true     |
-| name             | text        | string | true     |
-| description      | text        | string | false    |
-| prompt           | text        | string | true     |
-| llm_model        | text        | string | true     |
-| llm_temperature  | numeric     | number | true     |
-| created_at       | timestamptz | string | true     |
-| version          | integer     | number | true     |
+| name             | type                   | format | required |
+|------------------|------------------------|--------|----------|
+| id               | uuid                   | string | true     |
+| name             | text                   | string | true     |
+| description      | text                   | string | false    |
+| prompt           | text                   | string | true     |
+| llm_model        | text                   | string | true     |
+| llm_temperature  | numeric                | number | true     |
+| created_at       | timestamp with time zone | string | true     |
+| version          | integer                | number | false    |
 
-### benchmark_results
+### results
 
-| name        | type        | format | required |
-|-------------|-------------|--------|----------|
-| id          | uuid        | string | true     |
-| scenario_id | uuid        | string | true     |
-| user_id     | uuid        | string | false    |
-| result      | jsonb       | object | true     |
-| created_at  | timestamptz | string | true     |
+| name        | type                   | format | required |
+|-------------|------------------------|--------|----------|
+| id          | uuid                   | string | true     |
+| run_id      | uuid                   | string | true     |
+| reviewer_id | uuid                   | string | true     |
+| result      | jsonb                  | object | false    |
+| created_at  | timestamp with time zone | string | true     |
+
+### runs
+
+| name            | type                   | format | required |
+|-----------------|------------------------|--------|----------|
+| id              | uuid                   | string | true     |
+| scenario_id     | uuid                   | string | true     |
+| system_version  | text                   | string | true     |
+| project_id      | text                   | string | true     |
+| user_id         | uuid                   | string | false    |
+| created_at      | timestamp with time zone | string | true     |
 
 */
 
@@ -97,7 +108,7 @@ export const useAddUserSecret = () => {
 export const useUpdateUserSecret = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (updatedSecret) => fromSupabase(supabase.from('user_secrets').update(updatedSecret).eq('id', updatedSecret.id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('user_secrets').update(updateData).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('user_secrets');
         },
@@ -123,6 +134,7 @@ export const useReviewers = () => useQuery({
 export const useReviewer = (id) => useQuery({
     queryKey: ['reviewers', id],
     queryFn: () => fromSupabase(supabase.from('reviewers').select('*').eq('id', id).single()),
+    enabled: !!id,
 });
 
 export const useAddReviewer = () => {
@@ -138,7 +150,7 @@ export const useAddReviewer = () => {
 export const useUpdateReviewer = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (updatedReviewer) => fromSupabase(supabase.from('reviewers').update(updatedReviewer).eq('id', updatedReviewer.id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('reviewers').update(updateData).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('reviewers');
         },
@@ -164,6 +176,7 @@ export const useReviewDimensions = () => useQuery({
 export const useReviewDimension = (id) => useQuery({
     queryKey: ['review_dimensions', id],
     queryFn: () => fromSupabase(supabase.from('review_dimensions').select('*').eq('id', id).single()),
+    enabled: !!id,
 });
 
 export const useAddReviewDimension = () => {
@@ -179,7 +192,7 @@ export const useAddReviewDimension = () => {
 export const useUpdateReviewDimension = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (updatedDimension) => fromSupabase(supabase.from('review_dimensions').update(updatedDimension).eq('id', updatedDimension.id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('review_dimensions').update(updateData).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('review_dimensions');
         },
@@ -205,6 +218,7 @@ export const useBenchmarkScenarios = () => useQuery({
 export const useBenchmarkScenario = (id) => useQuery({
     queryKey: ['benchmark_scenarios', id],
     queryFn: () => fromSupabase(supabase.from('benchmark_scenarios').select('*').eq('id', id).single()),
+    enabled: !!id,
 });
 
 export const useAddBenchmarkScenario = () => {
@@ -220,7 +234,7 @@ export const useAddBenchmarkScenario = () => {
 export const useUpdateBenchmarkScenario = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (updatedScenario) => fromSupabase(supabase.from('benchmark_scenarios').update(updatedScenario).eq('id', updatedScenario.id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('benchmark_scenarios').update(updateData).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
         },
@@ -237,43 +251,86 @@ export const useDeleteBenchmarkScenario = () => {
     });
 };
 
-// Benchmark Results
-export const useBenchmarkResults = () => useQuery({
-    queryKey: ['benchmark_results'],
-    queryFn: () => fromSupabase(supabase.from('benchmark_results').select('*')),
+// Results
+export const useResults = () => useQuery({
+    queryKey: ['results'],
+    queryFn: () => fromSupabase(supabase.from('results').select('*')),
 });
 
-export const useBenchmarkResult = (id) => useQuery({
-    queryKey: ['benchmark_results', id],
-    queryFn: () => fromSupabase(supabase.from('benchmark_results').select('*').eq('id', id).single()),
+export const useResult = (id) => useQuery({
+    queryKey: ['results', id],
+    queryFn: () => fromSupabase(supabase.from('results').select('*').eq('id', id).single()),
+    enabled: !!id,
 });
 
-export const useAddBenchmarkResult = () => {
+export const useAddResult = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newResult) => fromSupabase(supabase.from('benchmark_results').insert([newResult])),
+        mutationFn: (newResult) => fromSupabase(supabase.from('results').insert([newResult])),
         onSuccess: () => {
-            queryClient.invalidateQueries('benchmark_results');
+            queryClient.invalidateQueries('results');
         },
     });
 };
 
-export const useUpdateBenchmarkResult = () => {
+export const useUpdateResult = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (updatedResult) => fromSupabase(supabase.from('benchmark_results').update(updatedResult).eq('id', updatedResult.id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('results').update(updateData).eq('id', id)),
         onSuccess: () => {
-            queryClient.invalidateQueries('benchmark_results');
+            queryClient.invalidateQueries('results');
         },
     });
 };
 
-export const useDeleteBenchmarkResult = () => {
+export const useDeleteResult = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id) => fromSupabase(supabase.from('benchmark_results').delete().eq('id', id)),
+        mutationFn: (id) => fromSupabase(supabase.from('results').delete().eq('id', id)),
         onSuccess: () => {
-            queryClient.invalidateQueries('benchmark_results');
+            queryClient.invalidateQueries('results');
+        },
+    });
+};
+
+// Runs
+export const useRuns = () => useQuery({
+    queryKey: ['runs'],
+    queryFn: () => fromSupabase(supabase.from('runs').select('*')),
+});
+
+export const useRun = (id) => useQuery({
+    queryKey: ['runs', id],
+    queryFn: () => fromSupabase(supabase.from('runs').select('*').eq('id', id).single()),
+    enabled: !!id,
+});
+
+export const useAddRun = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (newRun) => fromSupabase(supabase.from('runs').insert([newRun])),
+        onSuccess: () => {
+            queryClient.invalidateQueries('runs');
+        },
+    });
+};
+
+export const useUpdateRun = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('runs').update(updateData).eq('id', id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries('runs');
+        },
+    });
+};
+
+export const useDeleteRun = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id) => fromSupabase(supabase.from('runs').delete().eq('id', id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries('runs');
         },
     });
 };
