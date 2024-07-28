@@ -218,19 +218,33 @@ const StartBenchmark = () => {
         // Call initial user impersonation function
         const { projectId, initialRequest, messages: initialMessages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
-        // Transactionally create new run entry with 'paused' state
-        const { data: newRun, error: runError } = await supabase
-          .rpc('start_run', {
-            p_scenario_id: scenarioId,
-            p_system_version: systemVersion,
-            p_project_id: projectId,
-            p_user_id: session.user.id,
-            p_link: `${systemVersion}/projects/${projectId}`
-          });
+        // Create a new run entry with 'paused' state
+        const { data: newRun, error: createRunError } = await supabase
+          .from('runs')
+          .insert({
+            scenario_id: scenarioId,
+            system_version: systemVersion,
+            project_id: projectId,
+            user_id: session.user.id,
+            link: `${systemVersion}/projects/${projectId}`,
+            state: 'paused'
+          })
+          .select()
+          .single();
 
-        if (runError) throw new Error(`Failed to start run: ${runError.message}`);
+        if (createRunError) throw new Error(`Failed to create run: ${createRunError.message}`);
 
-        toast.success(`Benchmark started for scenario: ${scenario.name}`);
+        // Start the paused run
+        const { data: startedRun, error: startRunError } = await supabase
+          .rpc('start_paused_run', { run_id: newRun.id });
+
+        if (startRunError) throw new Error(`Failed to start run: ${startRunError.message}`);
+
+        if (startedRun) {
+          toast.success(`Benchmark started for scenario: ${scenario.name}`);
+        } else {
+          toast.warning(`Benchmark created but not started for scenario: ${scenario.name}`);
+        }
       }
 
       toast.success("All benchmarks started successfully!");
