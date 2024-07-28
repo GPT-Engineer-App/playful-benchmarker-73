@@ -19,7 +19,10 @@ const Index = () => {
               <li><Link to="/" className="hover:underline">Home</Link></li>
               <li><Link to="/about" className="hover:underline">About</Link></li>
               {session ? (
-                <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
+                <>
+                  <li><Link to="/secrets" className="hover:underline">Secrets</Link></li>
+                  <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
+                </>
               ) : (
                 <li><Link to="/login" className="hover:underline">Login</Link></li>
               )}
@@ -31,9 +34,14 @@ const Index = () => {
       <main className="flex-grow container mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold mb-4">Welcome to Lovable Benchmarks</h2>
         {session ? (
-          <p className="mb-6">
-            Hello, {session.user.email}! You're logged in.
-          </p>
+          <div>
+            <p className="mb-6">
+              Hello, {session.user.email}! You're logged in.
+            </p>
+            <Button asChild className="mr-4">
+              <Link to="/secrets">Manage Secrets</Link>
+            </Button>
+          </div>
         ) : (
           <p className="mb-6">
             Lovable Benchmarks is a cutting-edge tool designed for automated benchmarking of GPT Engineer. 

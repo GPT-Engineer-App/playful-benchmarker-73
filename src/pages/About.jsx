@@ -19,7 +19,10 @@ const About = () => {
               <li><Link to="/" className="hover:underline">Home</Link></li>
               <li><Link to="/about" className="hover:underline">About</Link></li>
               {session ? (
-                <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
+                <>
+                  <li><Link to="/secrets" className="hover:underline">Secrets</Link></li>
+                  <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
+                </>
               ) : (
                 <li><Link to="/login" className="hover:underline">Login</Link></li>
               )}
