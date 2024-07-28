@@ -3,25 +3,29 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSupabaseAuth } from "../integrations/supabase/auth";
+import { supabase } from "../integrations/supabase";
 import { toast } from "sonner";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { supabase } = useSupabaseAuth();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
       if (error) throw error;
-      toast.success("Signup successful! Please check your email to confirm your account.");
-      navigate("/login");
+      if (data.user && data.session) {
+        toast.success("Signup successful! You are now logged in.");
+        navigate("/");
+      } else {
+        toast.success("Signup successful! Please check your email to confirm your account.");
+        navigate("/login");
+      }
     } catch (error) {
       toast.error(error.message);
     }
