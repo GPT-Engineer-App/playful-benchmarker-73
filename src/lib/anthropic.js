@@ -38,10 +38,9 @@ export async function callOpenAILLM(messages, model = 'gpt-4o') {
     // Extract the content from the response
     const content = data.choices[0].message.content;
 
-    // Parse the XML content to extract the chat request
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(content, "text/xml");
-    const chatRequest = xmlDoc.getElementsByTagName('lov-chat-request')[0]?.textContent.trim();
+    // Parse the XML content to extract the chat request using regex
+    const match = content.match(/<lov-chat-request>([\s\S]*?)<\/lov-chat-request>/);
+    const chatRequest = match ? match[1].trim() : null;
 
     if (!chatRequest) {
       throw new Error('No valid chat request found in LLM response');
