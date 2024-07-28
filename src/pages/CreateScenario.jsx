@@ -12,6 +12,7 @@ import {
   SelectValue,
   SelectSeparator,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
 import { useAddBenchmarkScenario, useAddReviewer, useReviewDimensions } from "../integrations/supabase";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
@@ -70,7 +71,10 @@ const CreateScenario = () => {
     const { name, value } = e.target;
     setReviewers((prev) => {
       const newReviewers = [...prev];
-      newReviewers[index] = { ...newReviewers[index], [name]: value };
+      newReviewers[index] = { 
+        ...newReviewers[index], 
+        [name]: name === 'weight' ? parseInt(value, 10) : value 
+      };
       return newReviewers;
     });
   };
@@ -111,7 +115,7 @@ const CreateScenario = () => {
         dimension: "",
         description: "",
         prompt: "",
-        weight: 0,
+        weight: 1,
         llm_model: "gpt-4o-mini",
         llm_temperature: 0,
         run_count: 1,
@@ -284,15 +288,29 @@ const CreateScenario = () => {
                 </div>
                 <div>
                   <Label htmlFor={`weight-${index}`}>Weight</Label>
-                  <Input
-                    id={`weight-${index}`}
-                    name="weight"
-                    type="number"
-                    step="0.1"
-                    value={reviewer.weight}
-                    onChange={(e) => handleReviewerChange(index, e)}
-                    required
-                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Select
+                          value={reviewer.weight.toString()}
+                          onValueChange={(value) => handleReviewerChange(index, { target: { name: 'weight', value } })}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select weight" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 - Weak signal</SelectItem>
+                            <SelectItem value="2">2 - Moderate signal</SelectItem>
+                            <SelectItem value="3">3 - Strong signal</SelectItem>
+                            <SelectItem value="4">4 - Very strong signal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>1: Weak signal, 2: Moderate signal, 3: Strong signal, 4: Very strong signal</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 <div>
                   <Label htmlFor={`reviewer-llm-model-${index}`}>LLM Model</Label>
