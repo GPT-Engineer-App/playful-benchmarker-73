@@ -167,16 +167,6 @@ const StartBenchmark = () => {
           link: `${systemVersion}/projects/${projectId}`,
         });
 
-        // Add initial result
-        await addResult.mutateAsync({
-          run_id: runData.id,
-          reviewer_id: null,
-          result: {
-            type: 'initial_impersonation',
-            data: { initialRequest, initialMessages },
-          },
-        });
-
         toast.success(`Benchmark started for scenario: ${scenario.name}`);
       }
 
