@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddBenchmarkResult, useAddRun } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddRun, useAddResult } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
@@ -17,8 +17,8 @@ const StartBenchmark = () => {
   const [selectedScenarios, setSelectedScenarios] = useState([]);
   const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "http://localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
-  const addBenchmarkResult = useAddBenchmarkResult();
   const addRun = useAddRun();
+  const addResult = useAddResult();
 
   const handleScenarioToggle = (scenarioId) => {
     setSelectedScenarios((prev) =>
@@ -58,16 +58,17 @@ const StartBenchmark = () => {
           user_id: session.user.id,
         });
 
-        // Save benchmark result
-        await addBenchmarkResult.mutateAsync({
-          scenario_id: scenarioId,
-          user_id: session.user.id,
-          run_id: runData.id,
-          result: {
-            impersonation_results: impersonationResults,
-            system_version: systemVersion,
-          },
-        });
+        // Save run results
+        for (const reviewer of scenario.reviewers) {
+          await addResult.mutateAsync({
+            run_id: runData.id,
+            reviewer_id: reviewer.id,
+            result: {
+              impersonation_results: impersonationResults,
+              system_version: systemVersion,
+            },
+          });
+        }
 
         toast.success(`Benchmark completed for scenario: ${scenario.name}`);
       }
