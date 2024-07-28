@@ -60,7 +60,7 @@ const sendChatMessage = async (projectId, message, systemVersion) => {
 };
 
 // Main function to handle user impersonation
-export const impersonateUser = async (prompt, systemVersion) => {
+export const impersonateUser = async (prompt, systemVersion, temperature) => {
   try {
     const systemMessage = {
       role: "system",
@@ -76,7 +76,7 @@ Create a todo app
       content: "Now, based on the following prompt, generate appropriate requests to the GPT Engineer system:\n\n" + prompt
     };
 
-    const chatRequest = await callOpenAILLM([systemMessage, userMessage]);
+    const chatRequest = await callOpenAILLM([systemMessage, userMessage], 'gpt-4o', temperature);
     
     let projectId = null;
     const results = [];

@@ -41,7 +41,7 @@ const StartBenchmark = () => {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
         // Call user impersonation function
-        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion);
+        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
         // Extract project ID from impersonation results
         const projectId = impersonationResults.find(result => result.type === 'project_created')?.data?.id;

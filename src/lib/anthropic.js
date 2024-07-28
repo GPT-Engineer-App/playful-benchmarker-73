@@ -1,6 +1,6 @@
 import { supabase } from '../integrations/supabase';
 
-export async function callOpenAILLM(messages, model = 'gpt-4o') {
+export async function callOpenAILLM(messages, model = 'gpt-4o', temperature = 0.7) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -12,7 +12,8 @@ export async function callOpenAILLM(messages, model = 'gpt-4o') {
     const requestBody = {
       model: model,
       messages: messages,
-      max_tokens: 1000
+      max_tokens: 4096,
+      temperature: temperature
     };
 
     // Log the LLM request
