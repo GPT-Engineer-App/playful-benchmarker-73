@@ -12,7 +12,7 @@ import {
   SelectValue,
   SelectSeparator,
 } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { useAddBenchmarkScenario, useAddReviewer, useReviewDimensions } from "../integrations/supabase";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
@@ -287,30 +287,26 @@ const CreateScenario = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`weight-${index}`}>Weight</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Select
-                          value={reviewer.weight.toString()}
-                          onValueChange={(value) => handleReviewerChange(index, { target: { name: 'weight', value } })}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select weight" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 - Weak signal</SelectItem>
-                            <SelectItem value="2">2 - Moderate signal</SelectItem>
-                            <SelectItem value="3">3 - Strong signal</SelectItem>
-                            <SelectItem value="4">4 - Very strong signal</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>1: Weak signal, 2: Moderate signal, 3: Strong signal, 4: Very strong signal</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Label>Weight</Label>
+                  <RadioGroup
+                    value={reviewer.weight.toString()}
+                    onValueChange={(value) => handleReviewerChange(index, { target: { name: 'weight', value } })}
+                    className="flex space-x-4 mt-2"
+                  >
+                    {[
+                      { value: "1", label: "Weak signal" },
+                      { value: "2", label: "Moderate signal" },
+                      { value: "3", label: "Strong signal" },
+                      { value: "4", label: "Very strong signal" },
+                    ].map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.value} id={`weight-${index}-${option.value}`} />
+                        <Label htmlFor={`weight-${index}-${option.value}`} className="font-normal">
+                          {option.value} - {option.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
                 </div>
                 <div>
                   <Label htmlFor={`reviewer-llm-model-${index}`}>LLM Model</Label>
