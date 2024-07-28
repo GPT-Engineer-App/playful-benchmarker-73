@@ -78,14 +78,15 @@ const fromSupabase = async (query) => {
 
 ### runs
 
-| name            | type                   | format | required |
-|-----------------|------------------------|--------|----------|
-| id              | uuid                   | string | true     |
-| scenario_id     | uuid                   | string | true     |
-| system_version  | text                   | string | true     |
-| project_id      | text                   | string | true     |
-| user_id         | uuid                   | string | false    |
-| created_at      | timestamp with time zone | string | true     |
+| name                | type                   | format | required |
+|---------------------|------------------------|--------|----------|
+| id                  | uuid                   | string | true     |
+| scenario_id         | uuid                   | string | true     |
+| system_version      | text                   | string | true     |
+| project_id          | text                   | string | true     |
+| user_id             | uuid                   | string | false    |
+| created_at          | timestamp with time zone | string | true     |
+| impersonation_failed| boolean                | boolean| false    |
 
 */
 
@@ -308,7 +309,10 @@ export const useRun = (id) => useQuery({
 export const useAddRun = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newRun) => fromSupabase(supabase.from('runs').insert([newRun])),
+        mutationFn: (newRun) => fromSupabase(supabase.from('runs').insert([{
+            ...newRun,
+            impersonation_failed: newRun.impersonation_failed || false
+        }])),
         onSuccess: () => {
             queryClient.invalidateQueries('runs');
         },

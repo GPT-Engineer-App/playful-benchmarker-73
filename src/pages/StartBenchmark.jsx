@@ -56,6 +56,7 @@ const StartBenchmark = () => {
           system_version: systemVersion,
           project_id: projectId,
           user_id: session.user.id,
+          impersonation_failed: !projectId, // If we didn't get a projectId, impersonation failed
         });
 
         // Save run results
