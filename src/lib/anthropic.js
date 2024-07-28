@@ -1,6 +1,6 @@
 import { supabase } from '../integrations/supabase';
 
-export async function callOpenAILLM(prompt, model = 'gpt-4') {
+export async function callOpenAILLM(messages, model = 'gpt-4') {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -11,10 +11,7 @@ export async function callOpenAILLM(prompt, model = 'gpt-4') {
 
     const requestBody = {
       model: model,
-      messages: [
-        { role: 'system', content: 'You are an AI assistant impersonating a user interacting with a GPT Engineer system. When you want to send a request to the system, use the <lov-chat-request> XML tag.' },
-        { role: 'user', content: prompt }
-      ],
+      messages: messages,
       max_tokens: 1000
     };
 
