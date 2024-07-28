@@ -5,10 +5,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddRun, useAddResult } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
+import { callOpenAILLM } from "../lib/anthropic";
 
 const StartBenchmark = () => {
   const navigate = useNavigate();
@@ -19,6 +20,22 @@ const StartBenchmark = () => {
   const [isRunning, setIsRunning] = useState(false);
   const addRun = useAddRun();
   const addResult = useAddResult();
+  const updateRun = useUpdateRun();
+
+  const sendChatMessage = async (projectId, message, systemVersion) => {
+    const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ message, images: [], mode: 'instant' }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to send chat message');
+    }
+    return response.json();
+  };
 
   const handleScenarioToggle = (scenarioId) => {
     setSelectedScenarios((prev) =>
