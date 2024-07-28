@@ -41,14 +41,7 @@ const StartBenchmark = () => {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
         // Call user impersonation function
-        const impersonationResults = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
-
-        // Extract project ID from impersonation results
-        const projectId = impersonationResults.find(result => result.type === 'project_created')?.data?.id;
-
-        if (!projectId) {
-          throw new Error('Failed to get project ID from impersonation results');
-        }
+        const { projectId, results: impersonationResults } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
         // Create new run entry
         const runData = await addRun.mutateAsync({
@@ -56,20 +49,18 @@ const StartBenchmark = () => {
           system_version: systemVersion,
           project_id: projectId,
           user_id: session.user.id,
-          impersonation_failed: !projectId, // If we didn't get a projectId, impersonation failed
+          impersonation_failed: false, // We assume it didn't fail if we got this far
         });
 
         // Save run results
-        for (const reviewer of scenario.reviewers) {
-          await addResult.mutateAsync({
-            run_id: runData.id,
-            reviewer_id: reviewer.id,
-            result: {
-              impersonation_results: impersonationResults,
-              system_version: systemVersion,
-            },
-          });
-        }
+        await addResult.mutateAsync({
+          run_id: runData.id,
+          reviewer_id: null, // We're not using reviewers at this stage
+          result: {
+            impersonation_results: impersonationResults,
+            system_version: systemVersion,
+          },
+        });
 
         toast.success(`Benchmark completed for scenario: ${scenario.name}`);
       }

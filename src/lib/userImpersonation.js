@@ -76,21 +76,37 @@ Create a todo app
       content: "Now, based on the following prompt, generate appropriate requests to the GPT Engineer system:\n\n" + prompt
     };
 
-    const chatRequest = await callOpenAILLM([systemMessage, userMessage], 'gpt-4o', temperature);
-    
-    let projectId = null;
+    const messages = [systemMessage, userMessage];
     const results = [];
 
     // Create a new project
+    const chatRequest = await callOpenAILLM(messages, 'gpt-4o', temperature);
     const project = await createProject(chatRequest, systemVersion);
-    projectId = project.id;
+    const projectId = project.id;
     results.push({ type: 'project_created', data: project });
-    
-    // Send chat message
-    const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
-    results.push({ type: 'chat_message_sent', data: chatResponse });
 
-    return results;
+    // Start the conversation loop
+    let conversationComplete = false;
+    while (!conversationComplete) {
+      // Send chat message
+      const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
+      results.push({ type: 'chat_message_sent', data: chatResponse });
+
+      // Add the system's response to the messages
+      messages.push({ role: "assistant", content: chatResponse.message });
+
+      // Get the next user message
+      const nextUserMessage = await callOpenAILLM(messages, 'gpt-4o', temperature);
+      
+      if (nextUserMessage.toLowerCase().includes("task completed") || nextUserMessage.toLowerCase().includes("no further requests")) {
+        conversationComplete = true;
+      } else {
+        messages.push({ role: "user", content: nextUserMessage });
+        chatRequest = nextUserMessage;
+      }
+    }
+
+    return { projectId, results };
   } catch (error) {
     console.error('Error in user impersonation:', error);
     throw error;
