@@ -4,8 +4,9 @@ import { useBenchmarkScenarios, useDeleteBenchmarkScenario } from "../integratio
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { ChevronUp, ChevronDown, Trash2, Edit } from "lucide-react";
+import { ChevronUp, ChevronDown, Trash2, Edit, Clock } from "lucide-react";
 
 const ScenarioList = () => {
   const navigate = useNavigate();
@@ -57,6 +58,9 @@ const ScenarioList = () => {
             <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>
               Name {sortField === "name" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
             </TableHead>
+            <TableHead className="cursor-pointer" onClick={() => handleSort("timeout")}>
+              Timeout {sortField === "timeout" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
+            </TableHead>
             <TableHead className="cursor-pointer" onClick={() => handleSort("created_at")}>
               Created At {sortField === "created_at" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
             </TableHead>
@@ -66,7 +70,33 @@ const ScenarioList = () => {
         <TableBody>
           {sortedScenarios.map((scenario) => (
             <TableRow key={scenario.id}>
-              <TableCell>{scenario.name}</TableCell>
+              <TableCell>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help">{scenario.name}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{scenario.description || "No description available"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
+              <TableCell>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {scenario.timeout} s
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Timeout: {scenario.timeout} seconds</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
               <TableCell>{new Date(scenario.created_at).toLocaleString()}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
