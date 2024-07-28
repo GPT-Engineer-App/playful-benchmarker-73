@@ -50,7 +50,7 @@ const fromSupabase = async (query) => {
 | result      | jsonb       | object | true     |
 | created_at  | timestamptz | string | true     |
 
-### reviews
+### reviewers
 
 | name             | type        | format | required |
 |------------------|-------------|--------|----------|
@@ -190,43 +190,43 @@ export const useDeleteBenchmarkResult = () => {
     });
 };
 
-// Reviews
-export const useReviews = () => useQuery({
-    queryKey: ['reviews'],
-    queryFn: () => fromSupabase(supabase.from('reviews').select('*'))
+// Reviewers
+export const useReviewers = () => useQuery({
+    queryKey: ['reviewers'],
+    queryFn: () => fromSupabase(supabase.from('reviewers').select('*'))
 });
 
-export const useReview = (id) => useQuery({
-    queryKey: ['reviews', id],
-    queryFn: () => fromSupabase(supabase.from('reviews').select('*').eq('id', id).single())
+export const useReviewer = (id) => useQuery({
+    queryKey: ['reviewers', id],
+    queryFn: () => fromSupabase(supabase.from('reviewers').select('*').eq('id', id).single())
 });
 
-export const useAddReview = () => {
+export const useAddReviewer = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newReview) => fromSupabase(supabase.from('reviews').insert([newReview])),
+        mutationFn: (newReviewer) => fromSupabase(supabase.from('reviewers').insert([newReviewer])),
         onSuccess: () => {
-            queryClient.invalidateQueries('reviews');
+            queryClient.invalidateQueries('reviewers');
         },
     });
 };
 
-export const useUpdateReview = () => {
+export const useUpdateReviewer = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('reviews').update(updateData).eq('id', id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('reviewers').update(updateData).eq('id', id)),
         onSuccess: () => {
-            queryClient.invalidateQueries('reviews');
+            queryClient.invalidateQueries('reviewers');
         },
     });
 };
 
-export const useDeleteReview = () => {
+export const useDeleteReviewer = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id) => fromSupabase(supabase.from('reviews').delete().eq('id', id)),
+        mutationFn: (id) => fromSupabase(supabase.from('reviewers').delete().eq('id', id)),
         onSuccess: () => {
-            queryClient.invalidateQueries('reviews');
+            queryClient.invalidateQueries('reviewers');
         },
     });
 };

@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useAddBenchmarkScenario, useAddReview } from "../integrations/supabase";
+import { useAddBenchmarkScenario, useAddReviewer } from "../integrations/supabase";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
 import { toast } from "sonner";
 
@@ -24,11 +24,11 @@ const CreateScenario = () => {
     llm_model: "gpt-4o-mini",
     llm_temperature: 0.5,
   });
-  const [reviews, setReviews] = useState([]);
+  const [reviewers, setReviewers] = useState([]);
   const navigate = useNavigate();
   const { session, logout } = useSupabaseAuth();
   const addBenchmarkScenario = useAddBenchmarkScenario();
-  const addReview = useAddReview();
+  const addReviewer = useAddReviewer();
 
   const handleScenarioChange = (e) => {
     const { name, value } = e.target;
@@ -43,33 +43,33 @@ const CreateScenario = () => {
     setScenario((prev) => ({ ...prev, llm_temperature: value[0] }));
   };
 
-  const handleReviewChange = (index, e) => {
+  const handleReviewerChange = (index, e) => {
     const { name, value } = e.target;
-    setReviews((prev) => {
-      const newReviews = [...prev];
-      newReviews[index] = { ...newReviews[index], [name]: value };
-      return newReviews;
+    setReviewers((prev) => {
+      const newReviewers = [...prev];
+      newReviewers[index] = { ...newReviewers[index], [name]: value };
+      return newReviewers;
     });
   };
 
-  const handleReviewLLMModelChange = (index, value) => {
-    setReviews((prev) => {
-      const newReviews = [...prev];
-      newReviews[index] = { ...newReviews[index], llm_model: value };
-      return newReviews;
+  const handleReviewerLLMModelChange = (index, value) => {
+    setReviewers((prev) => {
+      const newReviewers = [...prev];
+      newReviewers[index] = { ...newReviewers[index], llm_model: value };
+      return newReviewers;
     });
   };
 
-  const handleReviewLLMTemperatureChange = (index, value) => {
-    setReviews((prev) => {
-      const newReviews = [...prev];
-      newReviews[index] = { ...newReviews[index], llm_temperature: value[0] };
-      return newReviews;
+  const handleReviewerLLMTemperatureChange = (index, value) => {
+    setReviewers((prev) => {
+      const newReviewers = [...prev];
+      newReviewers[index] = { ...newReviewers[index], llm_temperature: value[0] };
+      return newReviewers;
     });
   };
 
-  const addReviewField = () => {
-    setReviews((prev) => [
+  const addReviewerField = () => {
+    setReviewers((prev) => [
       ...prev,
       {
         dimension: "",
@@ -94,15 +94,15 @@ const CreateScenario = () => {
       const { data: scenarioData, error: scenarioError } = await addBenchmarkScenario.mutateAsync(scenario);
       if (scenarioError) throw scenarioError;
 
-      for (const review of reviews) {
-        const { error: reviewError } = await addReview.mutateAsync({
-          ...review,
+      for (const reviewer of reviewers) {
+        const { error: reviewerError } = await addReviewer.mutateAsync({
+          ...reviewer,
           scenario_id: scenarioData[0].id,
         });
-        if (reviewError) throw reviewError;
+        if (reviewerError) throw reviewerError;
       }
 
-      toast.success("Scenario and reviews created successfully");
+      toast.success("Scenario and reviewers created successfully");
       navigate("/");
     } catch (error) {
       toast.error("Failed to create scenario: " + error.message);
@@ -191,37 +191,37 @@ const CreateScenario = () => {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Reviews</h2>
-            {reviews.map((review, index) => (
+            <h2 className="text-2xl font-bold">Reviewers</h2>
+            {reviewers.map((reviewer, index) => (
               <div key={index} className="border p-4 rounded-md space-y-2">
-                <h3 className="text-lg font-semibold">Review {index + 1}</h3>
+                <h3 className="text-lg font-semibold">Reviewer {index + 1}</h3>
                 <div>
                   <Label htmlFor={`dimension-${index}`}>Dimension</Label>
                   <Input
                     id={`dimension-${index}`}
                     name="dimension"
-                    value={review.dimension}
-                    onChange={(e) => handleReviewChange(index, e)}
+                    value={reviewer.dimension}
+                    onChange={(e) => handleReviewerChange(index, e)}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`review-description-${index}`}>Description</Label>
+                  <Label htmlFor={`reviewer-description-${index}`}>Description</Label>
                   <Textarea
-                    id={`review-description-${index}`}
+                    id={`reviewer-description-${index}`}
                     name="description"
-                    value={review.description}
-                    onChange={(e) => handleReviewChange(index, e)}
+                    value={reviewer.description}
+                    onChange={(e) => handleReviewerChange(index, e)}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`review-prompt-${index}`}>Prompt</Label>
+                  <Label htmlFor={`reviewer-prompt-${index}`}>Prompt</Label>
                   <Textarea
-                    id={`review-prompt-${index}`}
+                    id={`reviewer-prompt-${index}`}
                     name="prompt"
-                    value={review.prompt}
-                    onChange={(e) => handleReviewChange(index, e)}
+                    value={reviewer.prompt}
+                    onChange={(e) => handleReviewerChange(index, e)}
                     required
                   />
                 </div>
@@ -232,14 +232,14 @@ const CreateScenario = () => {
                     name="weight"
                     type="number"
                     step="0.1"
-                    value={review.weight}
-                    onChange={(e) => handleReviewChange(index, e)}
+                    value={reviewer.weight}
+                    onChange={(e) => handleReviewerChange(index, e)}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`review-llm-model-${index}`}>LLM Model</Label>
-                  <Select onValueChange={(value) => handleReviewLLMModelChange(index, value)} value={review.llm_model}>
+                  <Label htmlFor={`reviewer-llm-model-${index}`}>LLM Model</Label>
+                  <Select onValueChange={(value) => handleReviewerLLMModelChange(index, value)} value={reviewer.llm_model}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select LLM Model" />
                     </SelectTrigger>
@@ -252,14 +252,14 @@ const CreateScenario = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor={`review-llm-temperature-${index}`}>LLM Temperature: {review.llm_temperature.toFixed(2)}</Label>
+                  <Label htmlFor={`reviewer-llm-temperature-${index}`}>LLM Temperature: {reviewer.llm_temperature.toFixed(2)}</Label>
                   <Slider
-                    id={`review-llm-temperature-${index}`}
+                    id={`reviewer-llm-temperature-${index}`}
                     min={0}
                     max={1}
                     step={0.01}
-                    value={[review.llm_temperature]}
-                    onValueChange={(value) => handleReviewLLMTemperatureChange(index, value)}
+                    value={[reviewer.llm_temperature]}
+                    onValueChange={(value) => handleReviewerLLMTemperatureChange(index, value)}
                     className="mt-2"
                   />
                 </div>
@@ -269,14 +269,14 @@ const CreateScenario = () => {
                     id={`run-count-${index}`}
                     name="run_count"
                     type="number"
-                    value={review.run_count}
-                    onChange={(e) => handleReviewChange(index, e)}
+                    value={reviewer.run_count}
+                    onChange={(e) => handleReviewerChange(index, e)}
                     required
                   />
                 </div>
               </div>
             ))}
-            <Button type="button" onClick={addReviewField}>Add Review</Button>
+            <Button type="button" onClick={addReviewerField}>Add Reviewer</Button>
           </div>
 
           <Button type="submit" className="w-full">Create Scenario</Button>
