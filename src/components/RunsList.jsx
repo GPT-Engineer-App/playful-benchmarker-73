@@ -51,8 +51,8 @@ const RunsList = () => {
             <TableHead className="cursor-pointer" onClick={() => handleSort("project_id")}>
               Project ID {sortField === "project_id" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
             </TableHead>
-            <TableHead className="cursor-pointer" onClick={() => handleSort("impersonation_failed")}>
-              Impersonation Failed {sortField === "impersonation_failed" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
+            <TableHead className="cursor-pointer" onClick={() => handleSort("state")}>
+              State {sortField === "state" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
             </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -63,7 +63,7 @@ const RunsList = () => {
               <TableCell>{new Date(run.created_at).toLocaleString()}</TableCell>
               <TableCell>{run.system_version}</TableCell>
               <TableCell>{run.project_id}</TableCell>
-              <TableCell>{run.impersonation_failed ? 'Yes' : 'No'}</TableCell>
+              <TableCell>{run.state}</TableCell>
               <TableCell>
                 <Button variant="outline" size="sm" onClick={() => handleViewResults(run.id)}>
                   <Eye className="h-4 w-4 mr-2" />

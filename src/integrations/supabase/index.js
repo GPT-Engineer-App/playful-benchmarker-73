@@ -318,7 +318,7 @@ export const useAddRun = () => {
     return useMutation({
         mutationFn: (newRun) => fromSupabase(supabase.from('runs').insert([{
             ...newRun,
-            impersonation_failed: newRun.impersonation_failed || false
+            state: newRun.state || 'running'
         }])),
         onSuccess: () => {
             queryClient.invalidateQueries('runs');
@@ -329,7 +329,10 @@ export const useAddRun = () => {
 export const useUpdateRun = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('runs').update(updateData).eq('id', id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('runs').update({
+            ...updateData,
+            state: updateData.state || 'running'
+        }).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('runs');
         },

@@ -49,64 +49,80 @@ const StartBenchmark = () => {
           system_version: systemVersion,
           project_id: projectId,
           user_id: session.user.id,
-          impersonation_failed: false,
+          state: 'running',
         });
 
         const results = [];
         let conversationComplete = false;
         let chatRequest = initialRequest;
 
-        // Start the conversation loop
-        const startTime = Date.now();
-        while (!conversationComplete) {
-          // Send chat message
-          const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
-          results.push({ type: 'chat_message_sent', data: chatResponse });
+        try {
+          // Start the conversation loop
+          const startTime = Date.now();
+          while (!conversationComplete) {
+            // Send chat message
+            const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
+            results.push({ type: 'chat_message_sent', data: chatResponse });
 
-          // Check for timeout after sending the message
-          if (Date.now() - startTime > scenario.timeout * 1000) {
-            results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
-            break;
-          }
+            // Check for timeout after sending the message
+            if (Date.now() - startTime > scenario.timeout * 1000) {
+              results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
+              break;
+            }
 
-          // Add the chat response to the messages as a user message
-          messages.push({ role: "user", content: chatResponse.message });
+            // Add the chat response to the messages as a user message
+            messages.push({ role: "user", content: chatResponse.message });
 
-          // Get the next assistant message
-          const nextAssistantMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
-          
-          if (nextAssistantMessage.includes("<lov-scenario-finished/>")) {
-            conversationComplete = true;
-            results.push({ type: 'scenario_finished', data: { message: 'Scenario completed successfully' } });
-          } else {
-            const chatRequestMatch = nextAssistantMessage.match(/<lov-chat-request>([\s\S]*?)<\/lov-chat-request>/);
-            if (chatRequestMatch) {
-              chatRequest = chatRequestMatch[1].trim();
-              messages.push({ role: "assistant", content: nextAssistantMessage });
+            // Get the next assistant message
+            const nextAssistantMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
+            
+            if (nextAssistantMessage.includes("<lov-scenario-finished/>")) {
+              conversationComplete = true;
+              results.push({ type: 'scenario_finished', data: { message: 'Scenario completed successfully' } });
             } else {
-              console.warn("Unexpected assistant message format:", nextAssistantMessage);
-              results.push({ type: 'unexpected_message', data: { message: nextAssistantMessage } });
+              const chatRequestMatch = nextAssistantMessage.match(/<lov-chat-request>([\s\S]*?)<\/lov-chat-request>/);
+              if (chatRequestMatch) {
+                chatRequest = chatRequestMatch[1].trim();
+                messages.push({ role: "assistant", content: nextAssistantMessage });
+              } else {
+                console.warn("Unexpected assistant message format:", nextAssistantMessage);
+                results.push({ type: 'unexpected_message', data: { message: nextAssistantMessage } });
+              }
+            }
+
+            // Check for timeout after processing the response
+            if (Date.now() - startTime > scenario.timeout * 1000) {
+              results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
+              break;
             }
           }
 
-          // Check for timeout after processing the response
-          if (Date.now() - startTime > scenario.timeout * 1000) {
-            results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
-            break;
-          }
+          // Save run results
+          await addResult.mutateAsync({
+            run_id: runData.id,
+            reviewer_id: null,
+            result: {
+              impersonation_results: results,
+              system_version: systemVersion,
+            },
+          });
+
+          // Update run state to 'done'
+          await updateRun.mutateAsync({
+            id: runData.id,
+            state: 'done',
+          });
+
+          toast.success(`Benchmark completed for scenario: ${scenario.name}`);
+        } catch (error) {
+          console.error("Error during benchmark run:", error);
+          // Update run state to 'impersonator_failed'
+          await updateRun.mutateAsync({
+            id: runData.id,
+            state: 'impersonator_failed',
+          });
+          toast.error(`Benchmark failed for scenario: ${scenario.name}`);
         }
-
-        // Save run results
-        await addResult.mutateAsync({
-          run_id: runData.id,
-          reviewer_id: null,
-          result: {
-            impersonation_results: results,
-            system_version: systemVersion,
-          },
-        });
-
-        toast.success(`Benchmark completed for scenario: ${scenario.name}`);
       }
 
       toast.success("All benchmarks completed successfully!");
