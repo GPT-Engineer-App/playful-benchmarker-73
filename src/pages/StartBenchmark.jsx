@@ -25,6 +25,7 @@ const StartBenchmark = () => {
   const addResult = useAddResult();
   const updateRun = useUpdateRun();
   const { data: runs } = useRuns();
+  const { data: userSecrets } = useUserSecrets();
 
   const sendChatMessage = async (projectId, message, systemVersion, gptEngineerTestToken) => {
     const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
@@ -165,15 +166,21 @@ const StartBenchmark = () => {
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
-      if (isRunning) {
+      if (isRunning && userSecrets && userSecrets.length > 0) {
         const secrets = JSON.parse(userSecrets[0].secret);
         const gptEngineerTestToken = secrets.GPT_ENGINEER_TEST_TOKEN;
-        await handleSingleIteration(gptEngineerTestToken);
+        if (gptEngineerTestToken) {
+          await handleSingleIteration(gptEngineerTestToken);
+        } else {
+          console.error("GPT Engineer test token not found in user secrets");
+          setIsRunning(false);
+          toast.error("GPT Engineer test token not found. Please set it up in your secrets.");
+        }
       }
     }, 5000); // Run every 5 seconds
 
     return () => clearInterval(intervalId);
-  }, [isRunning, handleSingleIteration, userSecrets]);
+  }, [isRunning, handleSingleIteration, userSecrets, setIsRunning, toast]);
 
   const handleScenarioToggle = (scenarioId) => {
     setSelectedScenarios((prev) =>
