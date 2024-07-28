@@ -23,6 +23,7 @@ const Index = () => {
                 <>
                   <li><Link to="/secrets" className="hover:underline">Secrets</Link></li>
                   <li><Link to="/create-scenario" className="hover:underline">Create Scenario</Link></li>
+                  <li><Link to="/start-benchmark" className="hover:underline">Start Benchmark</Link></li>
                   <li><Button onClick={handleLogout} variant="ghost" className="h-9 px-4 py-2">Logout</Button></li>
                 </>
               ) : (
@@ -51,8 +52,11 @@ const Index = () => {
                 <Button asChild className="mr-4">
                   <Link to="/create-scenario">Create Scenario</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="mr-4">
                   <Link to="/create-review-dimension">Create Review Dimension</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/start-benchmark">Start Benchmark</Link>
                 </Button>
               </div>
               <ScenarioList />
