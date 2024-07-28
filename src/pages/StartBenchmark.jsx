@@ -15,7 +15,7 @@ const StartBenchmark = () => {
   const { session } = useSupabaseAuth();
   const { data: scenarios, isLoading } = useBenchmarkScenarios();
   const [selectedScenarios, setSelectedScenarios] = useState([]);
-  const [systemVersion, setSystemVersion] = useState("localhost:3000");
+  const [systemVersion, setSystemVersion] = useState("localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
   const addBenchmarkResult = useAddBenchmarkResult();
 
@@ -95,7 +95,7 @@ const StartBenchmark = () => {
               <SelectValue placeholder="Select system version" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="localhost:3000">localhost:3000</SelectItem>
+              <SelectItem value="localhost:8000">localhost:8000</SelectItem>
               {/* Add more options here in the future */}
             </SelectContent>
           </Select>

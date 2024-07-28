@@ -8,9 +8,11 @@ const parseLLMResponse = (response) => {
   return Array.from(chatRequests).map(node => node.textContent.trim());
 };
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 // Function to create a new project
 const createProject = async (description) => {
-  const response = await fetch('http://localhost:8000/projects', {
+  const response = await fetch(`${API_URL}/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +27,7 @@ const createProject = async (description) => {
 
 // Function to send a chat message to a project
 const sendChatMessage = async (projectId, message) => {
-  const response = await fetch(`http://localhost:8000/projects/${projectId}/chat`, {
+  const response = await fetch(`${API_URL}/projects/${projectId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
