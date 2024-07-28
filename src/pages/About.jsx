@@ -15,13 +15,13 @@ const About = () => {
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Lovable Benchmarks</h1>
           <nav>
-            <ul className="flex space-x-4">
+            <ul className="flex space-x-4 items-center">
               <li><Link to="/" className="hover:underline">Home</Link></li>
               <li><Link to="/about" className="hover:underline">About</Link></li>
               {session ? (
                 <>
                   <li><Link to="/secrets" className="hover:underline">Secrets</Link></li>
-                  <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
+                  <li><Button onClick={handleLogout} variant="ghost" className="h-9 px-4 py-2">Logout</Button></li>
                 </>
               ) : (
                 <>
