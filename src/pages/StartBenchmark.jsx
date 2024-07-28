@@ -25,6 +25,21 @@ const StartBenchmark = () => {
   const updateRun = useUpdateRun();
   const { data: runs } = useRuns();
 
+  const sendChatMessage = async (projectId, message, systemVersion, gptEngineerTestToken) => {
+    const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${gptEngineerTestToken}`,
+      },
+      body: JSON.stringify({ message, images: [], mode: 'instant' }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to send chat message');
+    }
+    return response.json();
+  };
+
   const handleSingleIteration = useCallback(async (gptEngineerTestToken) => {
     if (!runs || runs.length === 0) {
       console.log("No runs available");
@@ -158,21 +173,6 @@ const StartBenchmark = () => {
 
     return () => clearInterval(intervalId);
   }, [isRunning, handleSingleIteration, userSecrets]);
-
-  const sendChatMessage = async (projectId, message, systemVersion, gptEngineerTestToken) => {
-    const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${gptEngineerTestToken}`,
-      },
-      body: JSON.stringify({ message, images: [], mode: 'instant' }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to send chat message');
-    }
-    return response.json();
-  };
 
   const handleScenarioToggle = (scenarioId) => {
     setSelectedScenarios((prev) =>
