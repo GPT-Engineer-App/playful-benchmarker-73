@@ -69,17 +69,17 @@ const StartBenchmark = () => {
             break;
           }
 
-          // Add the system's response to the messages
-          messages.push({ role: "assistant", content: chatResponse.message });
+          // Add the chat response to the messages as a user message
+          messages.push({ role: "user", content: chatResponse.message });
 
-          // Get the next user message
-          const nextUserMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
+          // Get the next assistant message
+          const nextAssistantMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
           
-          if (nextUserMessage.toLowerCase().includes("task completed") || nextUserMessage.toLowerCase().includes("no further requests")) {
+          if (nextAssistantMessage.toLowerCase().includes("task completed") || nextAssistantMessage.toLowerCase().includes("no further requests")) {
             conversationComplete = true;
           } else {
-            messages.push({ role: "user", content: nextUserMessage });
-            chatRequest = nextUserMessage;
+            messages.push({ role: "assistant", content: nextAssistantMessage });
+            chatRequest = nextAssistantMessage;
           }
 
           // Check for timeout after processing the response
