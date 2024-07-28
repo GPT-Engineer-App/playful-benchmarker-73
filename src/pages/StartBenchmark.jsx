@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun, useUserSecrets } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
@@ -22,12 +22,12 @@ const StartBenchmark = () => {
   const addResult = useAddResult();
   const updateRun = useUpdateRun();
 
-  const sendChatMessage = async (projectId, message, systemVersion) => {
+  const sendChatMessage = async (projectId, message, systemVersion, gptEngineerTestToken) => {
     const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
+        'Authorization': `Bearer ${gptEngineerTestToken}`,
       },
       body: JSON.stringify({ message, images: [], mode: 'instant' }),
     });
@@ -45,9 +45,24 @@ const StartBenchmark = () => {
     );
   };
 
+  const { data: userSecrets } = useUserSecrets();
+
   const handleStartBenchmark = useCallback(async () => {
     if (selectedScenarios.length === 0) {
       toast.error("Please select at least one scenario to run.");
+      return;
+    }
+
+    if (!userSecrets || userSecrets.length === 0) {
+      toast.error("No user secrets found. Please set up your GPT Engineer test token.");
+      return;
+    }
+
+    const secrets = JSON.parse(userSecrets[0].secret);
+    const gptEngineerTestToken = secrets.GPT_ENGINEER_TEST_TOKEN;
+
+    if (!gptEngineerTestToken) {
+      toast.error("GPT Engineer test token not found. Please set it up in your secrets.");
       return;
     }
 
@@ -78,7 +93,7 @@ const StartBenchmark = () => {
           const startTime = Date.now();
           while (!conversationComplete) {
             // Send chat message
-            const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
+            const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion, gptEngineerTestToken);
             results.push({ type: 'chat_message_sent', data: chatResponse });
 
             // Check for timeout after sending the message
