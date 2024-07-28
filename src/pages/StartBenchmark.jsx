@@ -1,15 +1,17 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun, useUserSecrets } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddRun, useAddResult, useUpdateRun, useUserSecrets, useRuns } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
 import { callOpenAILLM } from "../lib/anthropic";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 const StartBenchmark = () => {
   const navigate = useNavigate();
@@ -21,6 +23,86 @@ const StartBenchmark = () => {
   const addRun = useAddRun();
   const addResult = useAddResult();
   const updateRun = useUpdateRun();
+  const { data: runs } = useRuns();
+
+  const handleSingleIteration = useCallback(async (gptEngineerTestToken) => {
+    if (!runs || runs.length === 0) {
+      console.log("No runs available");
+      return;
+    }
+
+    const pausedRun = runs.find(run => run.state === "paused");
+    if (!pausedRun) {
+      console.log("No paused run found");
+      return;
+    }
+
+    try {
+      // Fetch project messages from Firestore
+      const messagesRef = collection(db, `project/${pausedRun.project_id}/trajectory`);
+      const q = query(messagesRef, orderBy("timestamp", "asc"));
+      const querySnapshot = await getDocs(q);
+      const messages = querySnapshot.docs.map(doc => ({
+        role: doc.data().sender === "human" ? "user" : "assistant",
+        content: doc.data().content
+      }));
+
+      // Call OpenAI to get next user impersonation action
+      const nextAction = await callOpenAILLM(messages, 'gpt-4o', pausedRun.llm_temperature);
+
+      if (nextAction.includes("<lov-scenario-finished/>")) {
+        await updateRun.mutateAsync({
+          id: pausedRun.id,
+          state: 'completed',
+        });
+        toast.success("Scenario completed successfully");
+        return;
+      }
+
+      const chatRequestMatch = nextAction.match(/<lov-chat-request>([\s\S]*?)<\/lov-chat-request>/);
+      if (!chatRequestMatch) {
+        throw new Error("Unexpected assistant message format");
+      }
+
+      const chatRequest = chatRequestMatch[1].trim();
+
+      // Call the chat endpoint
+      const chatResponse = await sendChatMessage(pausedRun.project_id, chatRequest, systemVersion, gptEngineerTestToken);
+
+      // Add result
+      await addResult.mutateAsync({
+        run_id: pausedRun.id,
+        reviewer_id: null,
+        result: {
+          type: 'chat_message_sent',
+          data: chatResponse,
+        },
+      });
+
+      // Update run state back to 'paused'
+      await updateRun.mutateAsync({
+        id: pausedRun.id,
+        state: 'paused',
+      });
+
+      toast.success("Iteration completed successfully");
+    } catch (error) {
+      console.error("Error during iteration:", error);
+      toast.error(`Iteration failed: ${error.message}`);
+    }
+  }, [runs, updateRun, addResult, systemVersion, sendChatMessage]);
+
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      if (isRunning) {
+        const secrets = JSON.parse(userSecrets[0].secret);
+        const gptEngineerTestToken = secrets.GPT_ENGINEER_TEST_TOKEN;
+        await handleSingleIteration(gptEngineerTestToken);
+      }
+    }, 5000); // Run every 5 seconds
+
+    return () => clearInterval(intervalId);
+  }, [isRunning, handleSingleIteration, userSecrets]);
 
   const sendChatMessage = async (projectId, message, systemVersion, gptEngineerTestToken) => {
     const response = await fetch(`${systemVersion}/projects/${projectId}/chat`, {
@@ -76,98 +158,35 @@ const StartBenchmark = () => {
         const { projectId, initialRequest, messages: initialMessages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
         // Create new run entry
-        const runData = await addRun.mutateAsync({
+        await addRun.mutateAsync({
           scenario_id: scenarioId,
           system_version: systemVersion,
           project_id: projectId,
           user_id: session.user.id,
-          state: 'running',
-          link: `${systemVersion}/projects/${projectId}`, // Save the link
+          state: 'paused',
+          link: `${systemVersion}/projects/${projectId}`,
         });
 
-        const results = [];
-        let conversationComplete = false;
-        let chatRequest = initialRequest;
-        let messages = [...initialMessages];
+        // Add initial result
+        await addResult.mutateAsync({
+          run_id: runData.id,
+          reviewer_id: null,
+          result: {
+            type: 'initial_impersonation',
+            data: { initialRequest, initialMessages },
+          },
+        });
 
-        try {
-          // Start the conversation loop
-          const startTime = Date.now();
-          while (!conversationComplete) {
-            // Send chat message
-            const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion, gptEngineerTestToken);
-            results.push({ type: 'chat_message_sent', data: chatResponse });
-
-            // Check for timeout after sending the message
-            if (Date.now() - startTime > scenario.timeout * 1000) {
-              results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
-              break;
-            }
-
-            // Add the chat response to the messages as a user message
-            messages.push({ role: "user", content: chatResponse.message });
-
-            // Get the next assistant message
-            const nextAssistantMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
-            
-            if (nextAssistantMessage.includes("<lov-scenario-finished/>")) {
-              conversationComplete = true;
-              results.push({ type: 'scenario_finished', data: { message: 'Scenario completed successfully' } });
-            } else {
-              const chatRequestMatch = nextAssistantMessage.match(/<lov-chat-request>([\s\S]*?)<\/lov-chat-request>/);
-              if (chatRequestMatch) {
-                chatRequest = chatRequestMatch[1].trim();
-                messages.push({ role: "assistant", content: nextAssistantMessage });
-              } else {
-                console.warn("Unexpected assistant message format:", nextAssistantMessage);
-                results.push({ type: 'unexpected_message', data: { message: nextAssistantMessage } });
-              }
-            }
-
-            // Check for timeout after processing the response
-            if (Date.now() - startTime > scenario.timeout * 1000) {
-              results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
-              break;
-            }
-          }
-
-          // Save run results
-          await addResult.mutateAsync({
-            run_id: runData.id,
-            reviewer_id: null,
-            result: {
-              impersonation_results: results,
-              system_version: systemVersion,
-            },
-          });
-
-          // Update run state to 'done'
-          await updateRun.mutateAsync({
-            id: runData.id,
-            state: 'done',
-          });
-
-          toast.success(`Benchmark completed for scenario: ${scenario.name}`);
-        } catch (error) {
-          console.error("Error during benchmark run:", error);
-          // Update run state to 'impersonator_failed'
-          await updateRun.mutateAsync({
-            id: runData.id,
-            state: 'impersonator_failed',
-          });
-          toast.error(`Benchmark failed for scenario: ${scenario.name}`);
-        }
+        toast.success(`Benchmark started for scenario: ${scenario.name}`);
       }
 
-      toast.success("All benchmarks completed successfully!");
-      navigate("/");
+      toast.success("All benchmarks started successfully!");
     } catch (error) {
-      console.error("Error running benchmark:", error);
-      toast.error("An error occurred while running the benchmark. Please try again.");
-    } finally {
+      console.error("Error starting benchmark:", error);
+      toast.error("An error occurred while starting the benchmark. Please try again.");
       setIsRunning(false);
     }
-  }, [selectedScenarios, scenarios, systemVersion, session, addRun, addResult, navigate]);
+  }, [selectedScenarios, scenarios, systemVersion, session, addRun, addResult, userSecrets]);
 
   if (scenariosLoading) {
     return <div>Loading...</div>;
