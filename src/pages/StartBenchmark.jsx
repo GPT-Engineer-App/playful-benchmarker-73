@@ -48,33 +48,37 @@ const StartBenchmark = () => {
       return;
     }
 
-    const availableRun = runs.find(run => run.state === "paused" || run.state === "running");
-    if (!availableRun) {
-      console.log("No available run found");
+    const pausedRun = runs.find(run => run.state === "paused");
+    if (!pausedRun) {
+      console.log("No paused run found");
       return;
     }
 
-    // If the run is paused, try to start it
-    if (availableRun.state === "paused") {
-      const { data: runStarted, error: startError } = await supabase
-        .from('runs')
-        .update({ state: 'running' })
-        .eq('id', availableRun.id)
-        .select()
-        .single();
+    // Try to start the paused run
+    const { data: runStarted, error: startError } = await supabase
+      .rpc('start_paused_run', { run_id: pausedRun.id });
 
-      if (startError) {
-        console.error("Error starting run:", startError);
-        return;
-      }
-
-      if (!runStarted) {
-        console.log("Failed to start run:", availableRun.id);
-        return;
-      }
+    if (startError) {
+      console.error("Error starting run:", startError);
+      return;
     }
 
-    // At this point, the run should be in 'running' state
+    if (!runStarted) {
+      // Check if the run timed out
+      const { data: runData } = await supabase
+        .from('runs')
+        .select('state')
+        .eq('id', pausedRun.id)
+        .single();
+
+      if (runData.state === 'timed_out') {
+        console.log("Run timed out:", pausedRun.id);
+        toast.error(`Run ${pausedRun.id} timed out`);
+      } else {
+        console.log("Run was not in 'paused' state, skipping");
+      }
+      return;
+    }
 
     const startTime = Date.now();
 
@@ -214,7 +218,7 @@ const StartBenchmark = () => {
         // Call initial user impersonation function
         const { projectId, initialRequest, messages: initialMessages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
-        // Create a new run entry with 'running' state
+        // Create a new run entry with 'paused' state
         const { data: newRun, error: createRunError } = await supabase
           .from('runs')
           .insert({
@@ -223,24 +227,23 @@ const StartBenchmark = () => {
             project_id: projectId,
             user_id: session.user.id,
             link: `${systemVersion}/projects/${projectId}`,
-            state: 'running'
+            state: 'paused'
           })
           .select()
           .single();
 
         if (createRunError) throw new Error(`Failed to create run: ${createRunError.message}`);
 
-        toast.success(`Benchmark started for scenario: ${scenario.name}`);
+        // Start the paused run
+        const { data: startedRun, error: startRunError } = await supabase
+          .rpc('start_paused_run', { run_id: newRun.id });
 
-        // Pause the run immediately after creation
-        const { error: pauseRunError } = await supabase
-          .from('runs')
-          .update({ state: 'paused' })
-          .eq('id', newRun.id);
+        if (startRunError) throw new Error(`Failed to start run: ${startRunError.message}`);
 
-        if (pauseRunError) {
-          console.error(`Failed to pause run: ${pauseRunError.message}`);
-          // We don't throw here to allow other scenarios to proceed
+        if (startedRun) {
+          toast.success(`Benchmark started for scenario: ${scenario.name}`);
+        } else {
+          toast.warning(`Benchmark created but not started for scenario: ${scenario.name}`);
         }
       }
 
