@@ -1,14 +1,6 @@
 import { callOpenAILLM } from './anthropic';
 import { supabase } from '../integrations/supabase';
 
-// Function to parse LLM response and extract special XML tags
-const parseLLMResponse = (response) => {
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(response, "text/xml");
-  const chatRequests = xmlDoc.getElementsByTagName('lov-chat-request');
-  return Array.from(chatRequests).map(node => node.textContent.trim());
-};
-
 // Function to retrieve user secrets
 const getUserSecrets = async () => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -84,26 +76,19 @@ Create a todo app
       content: "Now, based on the following prompt, generate appropriate requests to the GPT Engineer system:\n\n" + prompt
     };
 
-    const llmResponse = await callOpenAILLM([systemMessage, userMessage]);
-    const chatRequests = parseLLMResponse(llmResponse);
+    const chatRequest = await callOpenAILLM([systemMessage, userMessage]);
     
     let projectId = null;
     const results = [];
 
-    for (let i = 0; i < chatRequests.length; i++) {
-      const request = chatRequests[i];
-      
-      if (i === 0) {
-        // For the first request, create a new project
-        const project = await createProject(request, systemVersion);
-        projectId = project.id;
-        results.push({ type: 'project_created', data: project });
-      }
-      
-      // Send chat message for all requests
-      const chatResponse = await sendChatMessage(projectId, request, systemVersion);
-      results.push({ type: 'chat_message_sent', data: chatResponse });
-    }
+    // Create a new project
+    const project = await createProject(chatRequest, systemVersion);
+    projectId = project.id;
+    results.push({ type: 'project_created', data: project });
+    
+    // Send chat message
+    const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
+    results.push({ type: 'chat_message_sent', data: chatResponse });
 
     return results;
   } catch (error) {

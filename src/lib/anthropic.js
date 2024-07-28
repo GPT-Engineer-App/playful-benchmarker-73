@@ -35,7 +35,19 @@ export async function callOpenAILLM(messages, model = 'gpt-4') {
     // Log the LLM response
     console.log('LLM Response:', JSON.stringify(data, null, 2));
 
-    return data.choices[0].message.content;
+    // Extract the content from the response
+    const content = data.choices[0].message.content;
+
+    // Parse the XML content to extract the chat request
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(content, "text/xml");
+    const chatRequest = xmlDoc.getElementsByTagName('lov-chat-request')[0]?.textContent.trim();
+
+    if (!chatRequest) {
+      throw new Error('No valid chat request found in LLM response');
+    }
+
+    return chatRequest;
   } catch (error) {
     console.error('Error calling OpenAI LLM:', error);
     throw error;
