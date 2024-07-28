@@ -21,8 +21,8 @@ const CreateScenario = () => {
     name: "",
     description: "",
     prompt: "",
-    llm_model: "",
-    llm_temperature: 0,
+    llm_model: "gpt-4o-mini",
+    llm_temperature: 0.5,
   });
   const [reviews, setReviews] = useState([]);
   const navigate = useNavigate();
