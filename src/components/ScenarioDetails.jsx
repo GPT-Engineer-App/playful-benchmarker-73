@@ -53,10 +53,11 @@ const ScenarioDetails = ({ scenario, handleScenarioChange, handleLLMTemperatureC
         id="timeout"
         name="timeout"
         type="number"
-        value={scenario.timeout}
+        value={scenario.timeout || 300}
         onChange={handleScenarioChange}
         required
         min="0"
+        placeholder="300"
       />
     </div>
   </div>

@@ -228,7 +228,7 @@ export const useAddBenchmarkScenario = () => {
     return useMutation({
         mutationFn: (newScenario) => fromSupabase(supabase.from('benchmark_scenarios').insert([{
             ...newScenario,
-            timeout: newScenario.timeout || 3600 // Default to 1 hour if not provided
+            timeout: newScenario.timeout || 300 // Default to 5 minutes if not provided
         }])),
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
@@ -241,7 +241,7 @@ export const useUpdateBenchmarkScenario = () => {
     return useMutation({
         mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('benchmark_scenarios').update({
             ...updateData,
-            timeout: updateData.timeout || 3600 // Default to 1 hour if not provided
+            timeout: updateData.timeout || 300 // Default to 5 minutes if not provided
         }).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');

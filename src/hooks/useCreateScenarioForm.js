@@ -18,6 +18,7 @@ const useCreateScenarioForm = () => {
       description: "",
       prompt: "",
       llm_temperature: 0.5,
+      timeout: 300,
     };
   });
 
