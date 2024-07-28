@@ -40,8 +40,8 @@ const StartBenchmark = () => {
       for (const scenarioId of selectedScenarios) {
         const scenario = scenarios.find((s) => s.id === scenarioId);
         
-        // Call user impersonation function
-        const { projectId, results: impersonationResults } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
+        // Call initial user impersonation function
+        const { projectId, initialRequest, messages } = await impersonateUser(scenario.prompt, systemVersion, scenario.llm_temperature);
 
         // Create new run entry
         const runData = await addRun.mutateAsync({
@@ -49,15 +49,39 @@ const StartBenchmark = () => {
           system_version: systemVersion,
           project_id: projectId,
           user_id: session.user.id,
-          impersonation_failed: false, // We assume it didn't fail if we got this far
+          impersonation_failed: false,
         });
+
+        const results = [];
+        let conversationComplete = false;
+        let chatRequest = initialRequest;
+
+        // Start the conversation loop
+        while (!conversationComplete) {
+          // Send chat message
+          const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
+          results.push({ type: 'chat_message_sent', data: chatResponse });
+
+          // Add the system's response to the messages
+          messages.push({ role: "assistant", content: chatResponse.message });
+
+          // Get the next user message
+          const nextUserMessage = await callOpenAILLM(messages, 'gpt-4o', scenario.llm_temperature);
+          
+          if (nextUserMessage.toLowerCase().includes("task completed") || nextUserMessage.toLowerCase().includes("no further requests")) {
+            conversationComplete = true;
+          } else {
+            messages.push({ role: "user", content: nextUserMessage });
+            chatRequest = nextUserMessage;
+          }
+        }
 
         // Save run results
         await addResult.mutateAsync({
           run_id: runData.id,
-          reviewer_id: null, // We're not using reviewers at this stage
+          reviewer_id: null,
           result: {
-            impersonation_results: impersonationResults,
+            impersonation_results: results,
             system_version: systemVersion,
           },
         });

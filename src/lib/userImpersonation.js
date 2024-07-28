@@ -59,7 +59,7 @@ const sendChatMessage = async (projectId, message, systemVersion) => {
   return response.json();
 };
 
-// Main function to handle user impersonation
+// Function to handle initial user impersonation and project creation
 export const impersonateUser = async (prompt, systemVersion, temperature) => {
   try {
     const systemMessage = {
@@ -77,38 +77,14 @@ Create a todo app
     };
 
     const messages = [systemMessage, userMessage];
-    const results = [];
 
     // Create a new project
     const chatRequest = await callOpenAILLM(messages, 'gpt-4o', temperature);
     const project = await createProject(chatRequest, systemVersion);
-    const projectId = project.id;
-    results.push({ type: 'project_created', data: project });
 
-    // Start the conversation loop
-    let conversationComplete = false;
-    while (!conversationComplete) {
-      // Send chat message
-      const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
-      results.push({ type: 'chat_message_sent', data: chatResponse });
-
-      // Add the system's response to the messages
-      messages.push({ role: "assistant", content: chatResponse.message });
-
-      // Get the next user message
-      const nextUserMessage = await callOpenAILLM(messages, 'gpt-4o', temperature);
-      
-      if (nextUserMessage.toLowerCase().includes("task completed") || nextUserMessage.toLowerCase().includes("no further requests")) {
-        conversationComplete = true;
-      } else {
-        messages.push({ role: "user", content: nextUserMessage });
-        chatRequest = nextUserMessage;
-      }
-    }
-
-    return { projectId, results };
+    return { projectId: project.id, initialRequest: chatRequest, messages };
   } catch (error) {
-    console.error('Error in user impersonation:', error);
+    console.error('Error in initial user impersonation:', error);
     throw error;
   }
 };
