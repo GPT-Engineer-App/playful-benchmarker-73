@@ -47,6 +47,18 @@ const ScenarioDetails = ({ scenario, handleScenarioChange, handleLLMTemperatureC
         className="mt-2"
       />
     </div>
+    <div>
+      <Label htmlFor="timeout">Timeout (seconds)</Label>
+      <Input
+        id="timeout"
+        name="timeout"
+        type="number"
+        value={scenario.timeout}
+        onChange={handleScenarioChange}
+        required
+        min="0"
+      />
+    </div>
   </div>
 );
 

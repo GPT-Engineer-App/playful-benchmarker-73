@@ -63,6 +63,7 @@ const fromSupabase = async (query) => {
 | prompt           | text                   | string | true     |
 | llm_model        | text                   | string | true     |
 | llm_temperature  | numeric                | number | true     |
+| timeout          | integer                | number | true     |
 | created_at       | timestamp with time zone | string | true     |
 | version          | integer                | number | false    |
 
@@ -225,7 +226,10 @@ export const useBenchmarkScenario = (id) => useQuery({
 export const useAddBenchmarkScenario = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newScenario) => fromSupabase(supabase.from('benchmark_scenarios').insert([newScenario])),
+        mutationFn: (newScenario) => fromSupabase(supabase.from('benchmark_scenarios').insert([{
+            ...newScenario,
+            timeout: newScenario.timeout || 3600 // Default to 1 hour if not provided
+        }])),
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
         },
@@ -235,7 +239,10 @@ export const useAddBenchmarkScenario = () => {
 export const useUpdateBenchmarkScenario = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('benchmark_scenarios').update(updateData).eq('id', id)),
+        mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('benchmark_scenarios').update({
+            ...updateData,
+            timeout: updateData.timeout || 3600 // Default to 1 hour if not provided
+        }).eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('benchmark_scenarios');
         },

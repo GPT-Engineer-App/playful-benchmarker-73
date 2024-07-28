@@ -57,7 +57,13 @@ const StartBenchmark = () => {
         let chatRequest = initialRequest;
 
         // Start the conversation loop
+        const startTime = Date.now();
         while (!conversationComplete) {
+          if (Date.now() - startTime > scenario.timeout * 1000) {
+            results.push({ type: 'timeout', data: { message: 'Scenario timed out' } });
+            break;
+          }
+
           // Send chat message
           const chatResponse = await sendChatMessage(projectId, chatRequest, systemVersion);
           results.push({ type: 'chat_message_sent', data: chatResponse });
