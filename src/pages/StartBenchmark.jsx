@@ -37,6 +37,8 @@ const StartBenchmark = () => {
       return;
     }
 
+    const startTime = Date.now();
+
     try {
       // Fetch project messages from Firestore
       const messagesRef = collection(db, `project/${pausedRun.project_id}/trajectory`);
@@ -89,8 +91,20 @@ const StartBenchmark = () => {
     } catch (error) {
       console.error("Error during iteration:", error);
       toast.error(`Iteration failed: ${error.message}`);
+    } finally {
+      const endTime = Date.now();
+      const timeUsage = Math.round((endTime - startTime) / 1000); // Convert to seconds
+
+      // Update the total_time_usage in Supabase
+      const { data, error } = await supabase
+        .rpc('update_run_time_usage', { 
+          run_id: pausedRun.id, 
+          time_increment: timeUsage 
+        });
+
+      if (error) console.error('Error updating time usage:', error);
     }
-  }, [runs, updateRun, addResult, systemVersion, sendChatMessage]);
+  }, [runs, updateRun, addResult, systemVersion, sendChatMessage, supabase]);
 
   useEffect(() => {
     const intervalId = setInterval(async () => {

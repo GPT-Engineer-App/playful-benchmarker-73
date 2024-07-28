@@ -1,0 +1,16 @@
+-- Add a new column to the runs table
+ALTER TABLE runs
+ADD COLUMN total_time_usage INTEGER DEFAULT 0;
+
+-- Create or replace a function to update the total_time_usage
+CREATE OR REPLACE FUNCTION update_run_time_usage(
+  run_id UUID,
+  time_increment INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE runs
+  SET total_time_usage = total_time_usage + time_increment
+  WHERE id = run_id;
+END;
+$$ LANGUAGE plpgsql;
