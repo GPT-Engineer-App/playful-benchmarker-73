@@ -43,7 +43,7 @@ const StartBenchmark = () => {
       const q = query(messagesRef, orderBy("timestamp", "asc"));
       const querySnapshot = await getDocs(q);
       const messages = querySnapshot.docs.map(doc => ({
-        role: doc.data().sender === "human" ? "user" : "assistant",
+        role: doc.data().sender === "human" ? "assistant" : "user",
         content: doc.data().content
       }));
 
