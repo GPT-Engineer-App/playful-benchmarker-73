@@ -15,7 +15,7 @@ const StartBenchmark = () => {
   const { session } = useSupabaseAuth();
   const { data: scenarios, isLoading: scenariosLoading } = useBenchmarkScenarios();
   const [selectedScenarios, setSelectedScenarios] = useState([]);
-  const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "http://localhost:8000");
+  const [systemVersion, setSystemVersion] = useState("http://localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
   const addRun = useAddRun();
   const addResult = useAddResult();
@@ -114,11 +114,7 @@ const StartBenchmark = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="http://localhost:8000">http://localhost:8000</SelectItem>
-              {import.meta.env.VITE_SYSTEM_VERSION && (
-                <SelectItem value={`http://${import.meta.env.VITE_SYSTEM_VERSION}`}>
-                  http://{import.meta.env.VITE_SYSTEM_VERSION}
-                </SelectItem>
-              )}
+              <SelectItem value="https://api.gpt-engineer.com">https://api.gpt-engineer.com</SelectItem>
               {/* Add more options here in the future */}
             </SelectContent>
           </Select>

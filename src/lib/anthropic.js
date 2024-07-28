@@ -7,7 +7,7 @@ export async function callOpenAILLM(messages, model = 'gpt-4') {
       throw new Error('User not authenticated');
     }
 
-    const systemVersion = import.meta.env.VITE_SYSTEM_VERSION || 'http://localhost:8000';
+    const systemVersion = 'http://localhost:8000';
 
     const requestBody = {
       model: model,
