@@ -15,7 +15,7 @@ const StartBenchmark = () => {
   const { session } = useSupabaseAuth();
   const { data: scenarios, isLoading: scenariosLoading } = useBenchmarkScenarios();
   const [selectedScenarios, setSelectedScenarios] = useState([]);
-  const [systemVersion, setSystemVersion] = useState("localhost:8000");
+  const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
   const addBenchmarkResult = useAddBenchmarkResult();
 
@@ -96,6 +96,11 @@ const StartBenchmark = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="localhost:8000">localhost:8000</SelectItem>
+              {import.meta.env.VITE_SYSTEM_VERSION && (
+                <SelectItem value={import.meta.env.VITE_SYSTEM_VERSION}>
+                  {import.meta.env.VITE_SYSTEM_VERSION}
+                </SelectItem>
+              )}
               {/* Add more options here in the future */}
             </SelectContent>
           </Select>
