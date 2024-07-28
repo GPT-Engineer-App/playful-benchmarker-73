@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
+import { useSupabaseAuth } from "../integrations/supabase/auth";
+import { Button } from "@/components/ui/button";
 
 const About = () => {
+  const { session, logout } = useSupabaseAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-primary text-primary-foreground p-4">
@@ -10,6 +18,11 @@ const About = () => {
             <ul className="flex space-x-4">
               <li><Link to="/" className="hover:underline">Home</Link></li>
               <li><Link to="/about" className="hover:underline">About</Link></li>
+              {session ? (
+                <li><Button onClick={handleLogout} variant="ghost">Logout</Button></li>
+              ) : (
+                <li><Link to="/login" className="hover:underline">Login</Link></li>
+              )}
             </ul>
           </nav>
         </div>
