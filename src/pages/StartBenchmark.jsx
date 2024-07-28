@@ -264,42 +264,18 @@ const StartBenchmark = () => {
     return <div>Loading...</div>;
   }
 
-  const {
-    selectedScenarios,
-    setSelectedScenarios,
-    systemVersion,
-    setSystemVersion,
-    isRunning,
-    handleStartBenchmark
-  } = useBenchmarkRunner();
+import Navbar from "../components/Navbar";
+import BenchmarkForm from "../components/BenchmarkForm";
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <ScenarioSelection
-            selectedScenarios={selectedScenarios}
-            setSelectedScenarios={setSelectedScenarios}
-          />
-
-          <SystemVersionSelection
-            systemVersion={systemVersion}
-            setSystemVersion={setSystemVersion}
-          />
-
-          <Button 
-            onClick={handleStartBenchmark} 
-            className="mt-8 w-full"
-            disabled={isRunning}
-          >
-            {isRunning ? "Running Benchmark..." : "Start Benchmark"}
-          </Button>
-        </div>
-      </main>
-    </div>
-  );
-};
+const StartBenchmark = () => (
+  <div className="flex flex-col min-h-screen">
+    <Navbar />
+    <main className="flex-grow container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
+        <BenchmarkForm />
+      </div>
+    </main>
+  </div>
+);
 
 export default StartBenchmark;
