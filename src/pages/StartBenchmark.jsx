@@ -37,6 +37,20 @@ const StartBenchmark = () => {
       return;
     }
 
+    // Try to start the paused run
+    const { data: runStarted, error: startError } = await supabase
+      .rpc('start_paused_run', { run_id: pausedRun.id });
+
+    if (startError) {
+      console.error("Error starting run:", startError);
+      return;
+    }
+
+    if (!runStarted) {
+      console.log("Run was not in 'paused' state, skipping");
+      return;
+    }
+
     const startTime = Date.now();
 
     try {
@@ -103,6 +117,12 @@ const StartBenchmark = () => {
         });
 
       if (error) console.error('Error updating time usage:', error);
+
+      // Update run state back to 'paused'
+      await updateRun.mutateAsync({
+        id: pausedRun.id,
+        state: 'paused',
+      });
     }
   }, [runs, updateRun, addResult, systemVersion, sendChatMessage, supabase]);
 

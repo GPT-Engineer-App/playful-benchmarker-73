@@ -15,21 +15,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 -- Create or replace a function to start a run transactionally
-CREATE OR REPLACE FUNCTION start_run(
-  p_scenario_id UUID,
-  p_system_version TEXT,
-  p_project_id TEXT,
-  p_user_id UUID,
-  p_link TEXT
-)
-RETURNS UUID AS $$
+CREATE OR REPLACE FUNCTION start_paused_run(run_id UUID)
+RETURNS BOOLEAN AS $$
 DECLARE
-  new_run_id UUID;
+  current_state TEXT;
 BEGIN
-  INSERT INTO runs (scenario_id, system_version, project_id, user_id, state, link)
-  VALUES (p_scenario_id, p_system_version, p_project_id, p_user_id, 'paused', p_link)
-  RETURNING id INTO new_run_id;
+  -- Start a transaction
+  BEGIN
+    -- Lock the row and get the current state
+    SELECT state INTO current_state
+    FROM runs
+    WHERE id = run_id
+    FOR UPDATE;
 
-  RETURN new_run_id;
+    -- Check if the state is 'paused'
+    IF current_state = 'paused' THEN
+      -- Update the state to 'running'
+      UPDATE runs
+      SET state = 'running'
+      WHERE id = run_id;
+      
+      RETURN TRUE;
+    ELSE
+      -- If the state is not 'paused', return false
+      RETURN FALSE;
+    END IF;
+  END;
 END;
 $$ LANGUAGE plpgsql;
