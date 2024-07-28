@@ -241,13 +241,14 @@ const CreateScenario = () => {
                 <h3 className="text-lg font-semibold">Reviewer {index + 1}</h3>
                 <div>
                   <Label htmlFor={`dimension-${index}`}>Dimension</Label>
-                  <Select onValueChange={(value) => handleReviewerDimensionChange(index, value)} value={reviewer.dimension}>
+                  <Select onValueChange={(value) => handleReviewerDimensionChange(index, value)} value={reviewer.dimension || "select_dimension"}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Dimension" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="select_dimension" disabled>Select a dimension</SelectItem>
                       {isLoadingDimensions ? (
-                        <SelectItem value="">Loading dimensions...</SelectItem>
+                        <SelectItem value="loading">Loading dimensions...</SelectItem>
                       ) : (
                         <>
                           {reviewDimensions?.map((dimension) => (
