@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAddBenchmarkScenario, useAddReview } from "../integrations/supabase";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
 import { toast } from "sonner";
@@ -25,6 +32,10 @@ const CreateScenario = () => {
   const handleScenarioChange = (e) => {
     const { name, value } = e.target;
     setScenario((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLLMModelChange = (value) => {
+    setScenario((prev) => ({ ...prev, llm_model: value }));
   };
 
   const handleReviewChange = (index, e) => {
@@ -132,13 +143,17 @@ const CreateScenario = () => {
             </div>
             <div>
               <Label htmlFor="llm_model">LLM Model</Label>
-              <Input
-                id="llm_model"
-                name="llm_model"
-                value={scenario.llm_model}
-                onChange={handleScenarioChange}
-                required
-              />
+              <Select onValueChange={handleLLMModelChange} value={scenario.llm_model}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select LLM Model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aws--anthropic.claude-3-5-sonnet-20240620-v1:0">
+                    aws--anthropic.claude-3-5-sonnet-20240620-v1:0
+                  </SelectItem>
+                  <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="llm_temperature">LLM Temperature</Label>
