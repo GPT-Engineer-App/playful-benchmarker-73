@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "../integrations/supabase/auth";
-import { useBenchmarkScenarios, useAddBenchmarkResult } from "../integrations/supabase";
+import { useBenchmarkScenarios, useAddBenchmarkResult, useAddRun } from "../integrations/supabase";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import { impersonateUser } from "../lib/userImpersonation";
@@ -18,6 +18,7 @@ const StartBenchmark = () => {
   const [systemVersion, setSystemVersion] = useState(import.meta.env.VITE_SYSTEM_VERSION || "http://localhost:8000");
   const [isRunning, setIsRunning] = useState(false);
   const addBenchmarkResult = useAddBenchmarkResult();
+  const addRun = useAddRun();
 
   const handleScenarioToggle = (scenarioId) => {
     setSelectedScenarios((prev) =>
@@ -42,10 +43,26 @@ const StartBenchmark = () => {
         // Call user impersonation function
         const impersonationResults = await impersonateUser(scenario.prompt, systemVersion);
 
+        // Extract project ID from impersonation results
+        const projectId = impersonationResults.find(result => result.type === 'project_created')?.data?.id;
+
+        if (!projectId) {
+          throw new Error('Failed to get project ID from impersonation results');
+        }
+
+        // Create new run entry
+        const runData = await addRun.mutateAsync({
+          scenario_id: scenarioId,
+          system_version: systemVersion,
+          project_id: projectId,
+          user_id: session.user.id,
+        });
+
         // Save benchmark result
         await addBenchmarkResult.mutateAsync({
           scenario_id: scenarioId,
           user_id: session.user.id,
+          run_id: runData.id,
           result: {
             impersonation_results: impersonationResults,
             system_version: systemVersion,
@@ -63,7 +80,7 @@ const StartBenchmark = () => {
     } finally {
       setIsRunning(false);
     }
-  }, [selectedScenarios, scenarios, systemVersion, session, addBenchmarkResult, navigate]);
+  }, [selectedScenarios, scenarios, systemVersion, session, addBenchmarkResult, addRun, navigate]);
 
   if (scenariosLoading) {
     return <div>Loading...</div>;
