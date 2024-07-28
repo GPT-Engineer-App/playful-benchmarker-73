@@ -1,10 +1,11 @@
-import { Home, Info, LogIn, Key, UserPlus, PlusCircle } from "lucide-react";
+import { Home, Info, LogIn, Key, UserPlus, PlusCircle, ListPlus } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import About from "./pages/About.jsx";
 import Login from "./pages/Login.jsx";
 import Secrets from "./pages/Secrets.jsx";
 import Signup from "./pages/Signup.jsx";
 import CreateScenario from "./pages/CreateScenario.jsx";
+import CreateReviewDimension from "./pages/CreateReviewDimension.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
@@ -45,5 +46,11 @@ export const navItems = [
     to: "/create-scenario",
     icon: <PlusCircle className="h-4 w-4" />,
     page: <CreateScenario />,
+  },
+  {
+    title: "Create Review Dimension",
+    to: "/create-review-dimension",
+    icon: <ListPlus className="h-4 w-4" />,
+    page: <CreateReviewDimension />,
   },
 ];

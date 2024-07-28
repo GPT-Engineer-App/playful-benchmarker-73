@@ -46,8 +46,11 @@ const Index = () => {
               <Button asChild className="mr-4">
                 <Link to="/secrets">Manage Secrets</Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="mr-4">
                 <Link to="/create-scenario">Create Scenario</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/create-review-dimension">Create Review Dimension</Link>
               </Button>
             </div>
           </div>
